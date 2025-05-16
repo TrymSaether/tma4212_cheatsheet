@@ -1,15 +1,28 @@
-\documentclass[a4paper,11pt]{article}
+\documentclass[a4paper,11pt]{report}
 \usepackage{trymtex}
+\usepackage{multicol}
 \addbibresource{frontmatter/ref.bib}
 
 
 \begin{document}
-
+\pgfplotsset{
+    every axis/.append style={
+        title style={font=\normalsize},
+        label style={font=\normalsize},
+        tick label style={font=\small},
+        legend style={font=\small},
+        width=0.9\textwidth,
+        height=0.25\textwidth,
+        grid=major,
+    }
+}
 \include{frontmatter/titlepage}
 
 \tableofcontents
 
-\section{Overview}
+\clearpage
+
+\chapter{Overview of Topics}
 
 \begin{description}[style=nextline]
 
@@ -31,327 +44,43 @@
     \item[Iterative Solvers (Jacobi \& CG):]
           Methods to solve the linear systems from discretization. Jacobi iteration updates each point from neighbors and converges under conditions like strict diagonal dominance (spectral radius $<1$). Conjugate Gradient (CG) is used for SPD systems; it converges in at most $n$ steps, with error reduction per step bounded by $(\sqrt{\kappa}-1)/(\sqrt{\kappa}+1)$ where $\kappa$ is $A$'s condition number.
 \end{description}
+\clearpage
 
-\section{Detailed Topic Guide}
+\chapter{Maximum-Norm Error Bounds}
 
-\subsection{Maximum-Norm Error Bounds}
 \paragraph{Typical exam questions}
 \begin{itemize}
     \item \enquote{Prove that the scheme is $O(h^2)$ convergent in the max norm.} Given a boundary-value problem and a second-order finite difference scheme, show that the maximum error $\max_m |e_m|$ is bounded by a constant times $h^2$.
     \item \enquote{Show the approximation is max-norm stable.} For example, proving $|U|_{\infty} \le C|f|_{\infty}$ for the discrete solution of $L_h U = f$ (a form of stability).
 \end{itemize}
 
-\paragraph{Worked outline}
-To bound the error in $\infty$-norm, one uses consistency + stability $\Rightarrow$ convergence. 
+\begin{outline}{Max-Norm Error Bounds}{}
+    To bound the error in $\infty$-norm, one uses consistency + stability $\Rightarrow$ convergence.
 
-\begin{description}[style=nextline]
-    \item[Consistency:] First, perform a local truncation error expansion to verify the scheme is $p$th-order consistent (e.g. truncation $\tau_i = O(h^2)$). 
-    \item[Stability:] Next, establish stability in max norm: for a linear system $A U = F$ derived from the scheme, stability means $|A^{-1}|_{\infty} \le C$ independent of $h$. 
-    Often this is shown via a DMP argument or by proving $A^{-1}$ has nonnegative entries summing to $\le C$. 
-    \item[Convergence:] Finally, by combining these, one concludes $|e|_{\infty} = |A^{-1}\tau|_{\infty} \le |A^{-1}|_{\infty}|\tau|_{\infty} \le C\cdot O(h^p)$, hence $\max|u(x_i)-U_i|=O(h^p)$. 
-\end{description}
-
-For example in a 1D elliptic BVP with a 5-point Laplacian, one can construct a barrier function to show stability (see DMP below) and use $\tau=O(h^2)$ to get $O(h^2)$ convergence. 
+    \begin{enumerate}
+        \item \textbf{Consistency:} First, perform a local truncation error expansion to verify the scheme is $p$th-order consistent (e.g. truncation $\tau_i = O(h^2)$).
+        \item \textbf{Stability:} Next, establish stability in max norm: for a linear system $A U = F$ derived from the scheme, stability means $|A^{-1}|_{\infty} \le C$ independent of $h$.
+              Often this is shown via a DMP argument or by proving $A^{-1}$ has nonnegative entries summing to $\le C$.
+        \item \textbf{Convergence:} Finally, by combining these, one concludes
+              $$
+                  |e|_{\infty} = |A^{-1}\tau|_{\infty} \le |A^{-1}|_{\infty}|\tau|_{\infty} \le C\cdot O(h^p) \quad \Longrightarrow \max|u(x_i)-U_i|=O(h^p)
+              $$
+    \end{enumerate}
+\end{outline}
+For example in a 1D elliptic BVP with a 5-point Laplacian, one can construct a barrier function to show stability (see DMP below) and use $\tau=O(h^2)$ to get $O(h^2)$ convergence.
 The key is demonstrating a uniform max-norm bound on the inverse difference operator.
 \footnote{Owren (2017): Chapter 6, pp. ~76--78 -- Stability and global error analysis for elliptic difference schemes.}
 
-\paragraph{Pitfalls}
-\begin{itemize}
-    \item \textbf{Mixing up local vs global error:} Don't assume $O(h^2)$ truncation implies $O(h^2)$ solution error without a stability argument. Remember that convergence requires both consistency and stability (Lax equivalence theorem).
-    \item \textbf{Neglecting boundary effects:} For certain schemes, truncation error at or near boundaries might drop order. A common mistake is to ignore that the global error is often limited by the lowest-order accuracy in the domain (e.g. first-order at boundary can make overall $|e|_{\infty}=O(h)$). Be cautious and, if needed, refine the mesh or use a correction to maintain overall order.
-    \item \textbf{Insufficient stability reasoning:} Merely citing that the matrix $A$ is invertible or SPD is not a full stability proof. You must show a bound like $|A^{-1}| \le C$ explicitly (often via DMP or matrix norm estimates). A frequent trap is to assert stability without showing how the discrete Green's function is bounded. Always argue why no large growth of error can occur.
-\end{itemize}
-
+\begin{pitfalls}{}{}
+    \begin{itemize}
+        \item \textbf{Mixing up local vs global error:} Don't assume $O(h^2)$ truncation implies $O(h^2)$ solution error without a stability argument. Remember that convergence requires both consistency and stability (Lax equivalence theorem).
+        \item \textbf{Neglecting boundary effects:} For certain schemes, truncation error at or near boundaries might drop order. A common mistake is to ignore that the global error is often limited by the lowest-order accuracy in the domain (e.g. first-order at boundary can make overall $|e|_{\infty}=O(h)$). Be cautious and, if needed, refine the mesh or use a correction to maintain overall order.
+        \item \textbf{Insufficient stability reasoning:} Merely citing that the matrix $A$ is invertible or SPD is not a full stability proof. You must show a bound like $|A^{-1}| \le C$ explicitly (often via DMP or matrix norm estimates). A frequent trap is to assert stability without showing how the discrete Green's function is bounded. Always argue why no large growth of error can occur.
+    \end{itemize}
+\end{pitfalls}
 \clearpage
 
-\subsection{Discrete Maximum Principle (DMP)}
-\paragraph{Typical exam questions}
-\begin{itemize}
-    \item \enquote{Prove that $-L_h$ has positive coefficients and satisfies a discrete maximum principle.} For instance, given a difference operator $L_h u_i = \alpha u_{i-1} - \beta u_i + \gamma u_{i+1}$ with $\alpha,\beta,\gamma>0$ and $\beta \ge \alpha+\gamma$, show that if $L_h v \le 0$ for interior points and $v$ is zero on the boundary, then $v_i \le 0$ for all interior $i$.
-    \item \enquote{Show that the scheme preserves the maximum principle.} E.g., for a 2D Laplace equation discretization, prove that if $f_{ij}\ge0$ (or $\le0$) and $u$ satisfies $L_h u = f$ with zero boundary values, then $u_{ij}$ attains its extrema on the boundary (non-positive inside in this case).
-\end{itemize}
-
-\paragraph{Worked outline}
-The DMP proof is typically by contradiction.
-
-Assume the discrete solution attains a positive interior maximum at node $m$ (so $v_m = \max_n v_n > 0$ and $v_m \ge v_{m\pm1}$).
-
-For a 1D three-point stencil under the given conditions,
-$$
--L_h v_m = \alpha v_{m-1} - \beta v_m + \gamma v_{m+1} \le 0$$
-
-plugging in the extremum gives
-
-$$-\beta v_m + \alpha v_{m-1} + \gamma v_{m+1} \le 0.$$
-
-But at $m$, $v_{m-1},v_{m+1}\le v_m$, so this implies
-
-$$-\beta v_m + (\alpha+\gamma) v_m \le 0 \Rightarrow (\alpha+\gamma - \beta)v_m \le 0. \quad \text{with} \quad \beta \ge \alpha+\gamma$$,
-
-this forces $v_m \le 0$, contradicting $v_m>0$.
-
-Hence no interior node can exceed the boundary maximum.  A similar argument holds for a negative minimum.
-
-
-In higher dimensions or more complex stencils, one uses an induction on neighbors or graph argument but the essence is the same: if $-L_h$ has all positive off-diagonals and each diagonal $\beta_{ii} \ge \sum_{j\neq i}\beta_{ij}$, then $L_h v \le 0$ forces $v$'s max to occur on the boundary (a property of M-matrices). This principle is then used to show stability: taking $v = e$ (error) or $v = e \pm \phi$ for some auxiliary $\phi$, one derives $\max |e|$ bounded by boundary values or forcing term. For example, in 2024 Exam Problem 1, after showing $-L_h$ positive, one had to prove DMP and then conclude max-norm stability by applying it to the error with a suitable supersolution.\footnote{Owren (2017): pp. 75--78 -- Definition and use of the discrete max principle for elliptic difference equations (implied by M-matrix conditions).}
-
-\paragraph{Pitfalls}
-\begin{itemize}
-    \item \textbf{Coefficient conditions:} Forgetting the precise conditions under which DMP holds. Counterexample: If the scheme is not diagonally dominant (e.g. $\beta < \alpha+\gamma$), the DMP conclusion may fail. Always state and check that $-L_h$ yields $\beta_{ii}\ge \sum_{j\neq i}\beta_{ij}$ and off-diagonals $\ge0$ (no negative connections), otherwise the principle can't be applied.
-    \item \textbf{Boundary values in DMP:} A common oversight is mishandling nonzero Dirichlet or Neumann boundary conditions. The simple form of DMP assumes homogeneous Dirichlet BC (boundary $v=0$). If $v$ is nonzero on the boundary, the conclusion should be $\max_{all} v = \max(\max_{\text{boundary}}v, 0)$. Adjust the statement accordingly or consider applying DMP to $v - B$ where $B$ is an extension of boundary values into the domain.
-    \item \textbf{Sign convention errors:} Ensure the inequality direction is correct. DMP proofs can be done with $L_h v \ge 0$ or $\le0$; be consistent. If you assume $L_h v \le 0$ (as is common when $L_h$ is the Laplace operator approximation), you conclude $v$ has no positive interior max. If the inequality is flipped, the conclusion flips to no negative interior min. Keep track of these details to avoid losing marks on logical accuracy.
-\end{itemize}
-
-\clearpage
-\subsection{Von Neumann Analysis}
-
-\paragraph{Typical exam questions}
-\begin{itemize}
-    \item \enquote{Perform a von Neumann stability analysis of the scheme and find the CFL condition.}For example, given an explicit scheme for $u_t + au_x = 0$ or $u_t = \nu u_{xx}$, determine for what time-step $k$ relative to mesh $h$ the method is stable (often yielding $ak/h \le 1$ or $\nu k/h^2 \le 1/2$, etc.).
-    \item \enquote{Is the scheme unconditionally stable or conditionally stable? Justify by Fourier analysis.} E.g., backward Euler for diffusion is unconditionally stable, which can be confirmed by showing the amplification factor $|\xi| = 1/(1+2r\sin^2(\frac{\beta h}{2})) < 1$ for all $r=k/h^2>0$. Conversely, for an explicit scheme, find the condition on $r$ so that $|\xi| \le 1$ for all Fourier modes $\beta$.
-\end{itemize}
-
-\paragraph{Worked outline}
-Procedure: Assume a solution of the form $U^n_m = \zeta^n e^{i\beta x_m}$ (where $x_m = m h$). Substitute this into the homogeneous linear difference scheme. This yields a characteristic equation for the amplification factor $\zeta$. For a two-level scheme, one typically gets a relation $\zeta = G(\beta; \mu)$, where $\mu$ is the Courant number or similar parameter (e.g. $\mu=ak/h$ for advection, or $r=\nu k/h^2$ for diffusion). The Von Neumann criterion demands $|\zeta(\beta)| \le 1$ for all Fourier modes $\beta$ in $[-\pi/h,\pi/h]$.
-
-In practice, one often checks the worst-case $\beta$ (like $\beta h = \pi$ for oscillatory mode). Example: For the FTCS scheme of the heat equation $u_t=\nu u_{xx}$ (forward time, central space), one finds $\zeta = 1 - 4r\sin^2(\frac{\beta h}{2})$. The stability requirement $|\zeta| \le 1$ for all $\beta$ leads to $|1 - 4r\sin^2(\theta)| \le 1$ $\forall \theta$, which simplifies to $4r\sin^2\theta \le 2$ (worst at $\sin^2\theta=1$), giving $r=\nu k/h^2 \le 1/2$. This is the familiar CFL condition $\nu k \le \frac{1}{2}h^2$.
-
-Another example: for upwind advection, $\zeta = 1 - \mu(1-e^{-i\beta h})$; requiring $|\zeta| \le 1$ yields $\mu \le 1$ (CFL $a k \le h$). If the scheme is unconditionally stable (e.g. Crank--Nicolson or backward Euler for diffusion), the analysis will show $|\zeta| \le 1$ for all $r>0$ (often straightforward since $\zeta = \frac{1}{1+4r\sin^2(\frac{\beta h}{2})}$ in backward Euler, which is always $<1$).
-
-Present the result as a clear condition (like $k \le h/|a|$ or $k \le h^2/(2\nu)$). If asked for amplification factor, give $\zeta(\beta)$ explicitly; if asked for stability, provide the derived inequality and conclude whether it's conditional or unconditional. Always mention the worst-case mode that dictates the condition (usually the highest frequency $\beta h = \pi$). The von Neumann criterion can be phrased as: the scheme is stable iff $\exists \mu \ge 0$ such that $|\zeta| \le 1 + \mu k$ (Lax's criterion) which essentially reduces to $|\zeta| \le 1$ as $k \to 0$.\footnote{Owren (2017): §5.9, pp. 60--62 -- Von Neumann's stability criterion and examples.}
-
-\paragraph{Pitfalls}
-\begin{itemize}
-    \item \textbf{Complex roots and damping:} If $\zeta$ is complex, you must check $|\zeta| \le 1$, not $\Re(\zeta) \le 1$. Students sometimes erroneously set real and imaginary parts $\le 1$ separately. Use $|\zeta|^2 = \zeta \overline{\zeta}$ to include both amplitude and phase. For instance, with diffusion-advection combinations, $\zeta$ can be complex, so compute $|\zeta|^2$ properly.
-    \item \textbf{Ignoring worst-case $\beta$:} It's a common mistake to plug in $\beta=0$ and conclude stability (since $\zeta(0)=1$ often). The most restrictive case is typically $\beta h = \pi$ (mode oscillating as +1, -1, +1, -1), so always evaluate at the highest frequency. If the scheme has multiple modes (multi-step schemes), consider all characteristic equation roots.
-    \item \textbf{CFL vs absolute stability:} Don't confuse von Neumann CFL conditions with other stability notions. For linear constant-coefficient PDEs they coincide, but if the exam problem has variable coefficients or nonlinear terms, von Neumann analysis is only a necessary condition. So, state clearly that you assume constant coefficients or small perturbation analysis. If the coefficients are time- or space-dependent (as in some exam tasks), you might use a ``frozen coefficient'' analysis and mention that the CFL condition should hold for the maximum characteristic speed in the domain.
-\end{itemize}
-
-\clearpage
-
-\subsection{Weak Form \& Galerkin FEM}
-\paragraph{Typical exam questions}
-\begin{itemize}
-    \item Derive the weak/variatonal form of the given BVP. For example, start with $- (p(x)u')' + q(x)u = f(x)$ on $[a,b]$ with $u(a)=u(b)=0$, and derive $\int_a^b pu'v' + quv = \int_a^b fv$ for all test functions $v$.
-    \item State the Galerkin method and set up the linear system. Often following the above, choose piecewise linear basis functions on a mesh and deduce that $u_h(x)=\sum_j U_j \phi_j(x)$ leads to the linear system $A\mathbf{U}=\mathbf{F}$ with $A_{ij}=\int p\phi'_i\phi'_j + q\phi_i\phi_jdx$ and $F_i=\int f\phi_idx$.
-    \item Explain why $A$ is symmetric positive-definite (SPD). Usually, argue that $A_{ij} = a(\phi_j,\phi_i)$ for some bilinear form $a(\cdot,\cdot)$, hence $A=A^T$; and for PD, $a(v,v)=0$ implies $v=0$ in $V$ (by coercivity of the underlying PDE operator).
-\end{itemize}
-
-\paragraph{Worked outline}
-\begin{enumerate}
-    \item Start by multiplying the PDE by a test function $v(x)$ and integrating over the domain. 
-    \item For a second-order ODE/PDE, integration by parts is performed to shift derivatives from $u$ onto $v$. 
-    In a classic example, $-u''(x)=f(x)$ on $(0,1)$ with $u(0)=u(1)=0$: 
-    multiply by $v$ and integrate, 
-    $$\int_0^1 -u''(x)v(x)dx = \int_0^1 f(x)v(x)dx.$$
-
-    \item Integrate the left by parts: 
-    $$\int_0^1 -u'' vdx = \int_0^1 u' v'dx - [u'v]_0^1.$$ 
-    The boundary term vanishes because $v(0)=v(1)=0$ for admissible test functions (they must satisfy the homogeneous BC). 
-    \item This yields the weak form: 
-    \begin{align*}
-    \text{find} \; u \in V \;  \text{s.t} \int_0^1 u' v'dx = \int_0^1 f vdx, \; \forall \, v\in V \; (\subset V=H^1_0(0,1)).
-    \end{align*}
-    Where the Sobolev space $H^1_0(0,1) = \{u \in H^1(0,1) : u(0)=u(1)=0\}$ is the space of piecewise linear functions vanishing at the boundary.
-    \item Next, apply the \textbf{Galerkin method}: restrict to a finite-dimensional subspace $V_h \subset V$ spanned by basis functions $\{\phi_j(x)\}_{j=0}^M$, typically hat functions at mesh nodes:
-    \begin{align*}
-        \phi_j(x) = \begin{cases}
-            1 - |x-x_j|/h & \text{if } x \in [x_j-h,x_j+h] \\
-            0 & \text{otherwise}
-        \end{cases}\\
-        &=
-        \begin{cases}
-            \frac{x-x_{j-1}}{x_j-x_{j-1}} & \text{if } x \in [x_{j-1},x_j] \\
-            \frac{x_{j+1}-x}{x_{j+1}-x_j} & \text{if } x \in [x_j,x_{j+1}] \\
-            0 & \text{otherwise}
-        \end{cases}
-        \tag{(hat function)}
-    \end{align*}
-    \item Assume approximate solution $u_h(x)=\sum_{j} U_j \phi_j(x).$
-    Plugging $u_h$ into the weak form and choosing $v=\phi_i$ in turn yields the linear system: 
-    $$\sum_j U_j \int_0^1 \phi'_j \phi'_idx = \int_0^1 f\phi_idx \quad \forall i=0,\ldots,M.$$
-    In matrix form, 
-    $$A\mathbf{U} = \mathbf{F}$$ 
-    with entries 
-    $$A_{ij}=\int \phi'_i \phi'_j, \quad F_i=\int f\phi_i.$$
-    \item The matrix $A$ is symmetric since $A_{ij} = \int \phi'_i \phi'_j = \int \phi'_j \phi'_i = A_{ji}$ (bilinear form symmetry).
-\end{enumerate}
-
-Many exams simply expect you to note that $A_{ij}=a(\phi_i,\phi_j)$ for the symmetric bilinear form $a(u,v)=\int pu'v' + quv$, so $A$ is symmetric, and $a(v,v)=0$ implies $v=0$ due to the PDE's coercivity, hence PD.
-
-Finally, note any specifics: e.g., if non-homogeneous BCs, one might incorporate them by a change of variable $u_h = R + w_h$ (lifting the BCs) as seen in some exams (like 2018 Exam Problem 1a). But typically, weak form derivations assume homogeneous BC to simplify.
-
-In summary, the Galerkin procedure involves:
-\begin{enumerate}[label=(\roman{*})]
-    \item derive weak form,
-    \item choose $V_h$ and basis,
-    \item assemble $A$ and $\mathbf{F}$,
-    \item solve $A\mathbf{U}=\mathbf{F}$.
-\end{enumerate}
-
-These steps are explicitly highlighted in Curry's notes.\footnote{Curry (2018): §2.1, pp. 3--5 -- Derivation of weak form for a 2nd-order ODE; Galerkin method steps.}
-\paragraph{Pitfalls}
-\begin{itemize}
-    \item \textbf{Omitting boundary conditions in $V$:} A very common mistake is failing to enforce homogeneous Dirichlet conditions in the test/solution space. If $v$ doesn't vanish on the boundary, the integrated-by-parts formula will have extra boundary terms -- the derived weak form would then be incorrect. Always specify $V$ as, e.g., $H^1_0$ (functions vanishing on Dirichlet boundaries) so that those terms drop out.
-    \item \textbf{Sign errors in integration by parts:} Keep track of the minus sign when moving the derivative: $\int -u''v = \int u'v'$, since $- \int u''v = -[u'v]_a^b + \int u'v'$. It's easy to lose a minus sign or a boundary term. Double-check by differentiating the weak form back to the strong form if possible.
-    \item \textbf{Misidentifying test vs trial functions:} Remember, the weak form $\int a(u,v) = \int f v$ must hold for all $v$ in $V$. In practice, when assembling, we set $v=\phi_i$ to get the $i$th equation. Don't think of ``$v$'' as a single specific function; treat it as an arbitrary test function. This ensures you get a linear system that holds for each basis function weight (hence for all $v$).
-    \item \textbf{Matrix assembly confusion:} Some assume the Galerkin equations magically appear without integration. In fact, you derive $A_{ij} = \int (\text{terms of }\phi_i,\phi_j)$ from the weak form. Avoid plugging trial functions into the strong form directly -- that leads to a collocation or least-squares method, not Galerkin. Stick to the variational form for deriving $A$ and $F$.
-\end{itemize}
-
-\subsection{Finite Element Stiffness Matrix Assembly}
-\paragraph{Typical exam questions}
-\begin{itemize}
-    \item \enquote{Compute the element stiffness matrix for [a given element].}
-     For instance, in a 2D Poisson problem with quadratic basis on a reference square (Exam 2016), find the $4\times4$ element matrix 
-     $$A^K_{ij} = \iint_K (\nabla \phi_i \cdot \nabla \phi_j)dxdy.$$
-    \item \enquote{Assemble the global matrix.}
-    E.g., given a simple mesh or numbering, add up element contributions to form the final $A$. A common task: confirm that for linear elements in 1D, assembling yields the tridiagonal matrix with $2$ on the diagonal and $-1$ on off-diagonals (scaled by material coefficients and element length) -- essentially the discrete second-derivative matrix.
-    \item \enquote{Discuss the structure of $A$.}
-    Is it symmetric? Banded? What is the bandwidth? Is it an M-matrix? Many exam questions (2013, 2018) asked whether $A$ is tridiagonal, SPD, etc., expecting reasoning from the element connectivity and properties of the bilinear form.
-\end{itemize}
-
-\paragraph{Worked outline}
-For each finite element element $K$, we compute the local stiffness matrix $A^K$ by integrating basis function gradients over that element. 
-
-For example, in 1D with linear basis on interval $[x_k,x_{k+1}]$, there are two local shape functions $\phi_k,\phi_{k+1}$ that are 1 at one node and 0 at the other. Their derivatives on that element are constants: $\phi'_k = -1/h$, $\phi'_{k+1}=1/h$.
-
-Thus the element matrix is:
-\begin{align*}
-    A^K = \begin{pmatrix}
-        \int_K \phi'_k \phi'_kdx    & \int_K \phi'_k \phi'_{k+1}dx    \\[6pt]
-        \int_K \phi'_{k+1}\phi'_kdx & \int_K \phi'_{k+1}\phi'_{k+1}dx
-    \end{pmatrix} = \int_{x_k}^{x_{k+1}}\frac{1}{h^2} \begin{pmatrix}1 & -1\\ -1 & 1\end{pmatrix} dx = \frac{1}{h}\begin{pmatrix}1 & -1\\ -1 & 1\end{pmatrix},
-\end{align*}
-
-since $\int_{x_k}^{x_{k+1}} dx = h$. 
-
-In general, for linear elements the $2\times2$ local matrix always looks like
-
-$$
-\frac{p(x_k)}{h}\begin{pmatrix}1&-1\\-1&1\end{pmatrix}
-$$
-
-if $p(x)$ is constant on $K$ (or replace $1/h$ by $\int_K p/h$ if variable).
-
-Higher-order elements yield larger local matrices (e.g. $4\times4$ for a biquadratic square element as in 2016 exam, which require integrating quadratic polynomials -- one can use area coordinates or reference element integration formulas).
-
-\textbf{Global assembly:} The global matrix $A$ is initially all zeros. For each element $K$ connecting global nodes $(i,j)$, add the entries of $A^K$ into the global $A$ at rows/cols $(i,j)$. 
-In 1D, each element connects node $k$ and $k+1$, so each local matrix adds into the $2\times2$ block of $A$ at indices $(k,k), (k,k+1), (k+1,k), (k+1,k+1)$. After assembling all $M$ intervals, the resulting $A$ has the pattern:
-$$ A = \frac{1}{h}\begin{pmatrix}
-        1      & -1     & 0      & \cdots & 0      \\
-        -1     & 2      & -1     & \cdots & 0      \\
-        0      & -1     & 2      & -1     & \ddots \\
-        \vdots &        & \ddots & \ddots & -1     \\
-        0      & \cdots & 0      & -1     & 1
-    \end{pmatrix}, $$
-for homogeneous Dirichlet ends. 
-This is exactly the matrix of the second difference operator.
-
-In exams, you might only need to assemble a small example by hand. 
-For instance, if $M=2$ (three nodes), assembling the two element matrices yields a $3\times3$ $A$ that you can write out. 
-Always ensure to account for shared nodes: interior nodes accumulate contributions from two elements, hence the $2$ on the diagonal after summing two $1$'s. 
-
-For the \textbf{load vector} $F$, similarly compute local $F^K_i = \int_K f\phi_idx$ and add to global $F$. Often, if $f(x)$ is simple, you can do these integrals (e.g. for linear $\phi$, $F^K = \frac{h}{2}(f(x_k), f(x_{k+1}))^T$ if using midpoint or linear interpolation approximations).
-
-\textbf{Matrix properties:} From assembly logic, each interior node typically connects to itself and a few neighbors. Thus $A$ is \textbf{sparse} and often banded (bandwidth corresponds to max nodes per element). In 1D, bandwidth is 1 (tridiagonal). In a 2D grid with linear elements, bandwidth is larger but still on the order of $\sqrt{N}$. Exams often expect recognition that $A$ is symmetric (follows from $A_{ij}=A_{ji}$ by construction) and usually \textbf{M-matrix}-like (positive diagonal, negative off-diagonals for diffusion problems).
-
-For example, in 2013 Problem 1b, after deriving the FEM system, one had to comment: Is $A$ symmetric? (Yes, $A=A^T$), Is it positive definite? (Yes, weak form is coercive), Is it tridiagonal? (In 1D, yes; in 2D, it's banded but not strictly tri-). By assembling or simply by knowing the support of basis functions (each linear basis overlaps only with its immediate neighbors), you can answer such questions confidently.\footnote{Curry (2018): §2.1--2.2, pp. 5--7 -- Definition of stiffness matrix and load vector; elementwise assembly process.}
-
-\paragraph{Pitfalls}
-\begin{itemize}
-    \item \textbf{Assembly indexing errors:} A common mistake is adding local contributions to the wrong global entries. Always keep track of the global node numbering of each element. Drawing a small diagram of nodes vs element can help prevent misplacement of terms.
-    \item \textbf{Omitting elementwise integration:} Some students try to write down the global matrix by intuition without computing any integrals. While pattern recognition is good, you should derive at least one local integral to justify the entries (especially if coefficients are not constant). For instance, if $p(x)$ varies, $A_{ii} = \int (p\phi'_i\phi'_i)$ might not equal $2p/h$ but rather an average. Avoid guessing -- do the integral or at least set it up.
-    \item \textbf{Boundary conditions in assembly:} Remember to apply boundary conditions to $A$ and $F$. For homogeneous Dirichlet, the first and last basis functions might be omitted entirely (if $u_0=u_M=0$ are known, then $U_0,U_M$ are not unknowns -- thus $A$ effectively is smaller). If you include them, you must incorporate the BC by modifying $A$ or $F$ (e.g. subtracting known terms). Forgetting this leads to an inconsistent system.
-    \item \textbf{Confusing FD and FE matrices:} The structure may look similar to finite difference, but the derivation is different. Don't mix up stencil intuition with assembly. For example, a Robin boundary condition in FEM adds a term in $A_{nn}$ and $F_n$ (from the boundary integral), whereas in FD one might tweak the last equation differently. Be precise with FEM: incorporate boundary integrals for natural BCs, and enforce essential BCs by adjusting the linear system (big penalty or modification method).
-\end{itemize}
-
-\subsection{Iterative Solvers (Jacobi \& Conjugate Gradient)}
-\paragraph{Typical exam questions}
-\begin{itemize}
-    \item \enquote{Will the Jacobi iteration converge for this system? For which parameter values?} e.g., given a $3\times3$ matrix $A(\alpha,\beta)$, determine for what $\alpha,\beta$ the spectral radius $\rho(D^{-1}R)<1$. In 2018 Exam (Problem 4b), students solved a specific $3\times3$ system, finding that Jacobi converges if $\alpha > |\beta|$ (ensuring diagonal dominance).
-    \item \enquote{Show that the Jacobi method converges for any SPD $2\times2$ matrix, but can diverge for some SPD $n\times n$.} (This type of question appeared in 2015/2016 exams.) It tests understanding that SPD is not a sufficient convergence condition for Jacobi in general -- counterexamples exist when off-diagonals are large despite SPD.
-    \item \enquote{Estimate the number of CG iterations needed to reach tolerance $\varepsilon$.} For example, \textit{``Given eigenvalues of $A$ lie in $[a,b]$, how many iterations $K$ are needed for $\frac{\|e_K\|_A}{\|e_0\|_A}\le \varepsilon$?''} -- using the CG convergence bound involving $\sqrt{b/a}$ (condition number). An exam might give specific $a,b$ or ask you to use an approximate ratio from an eigenvalue formula of $A$.
-\end{itemize}
-
-\paragraph{Worked outline}
-\textbf{Jacobi Method:} We split $A = D - R$ where $D=\operatorname{diag}(A)$ and $R = D - A$ (so $R$ contains off-diagonals). The Jacobi iteration is:
-\[ x^{(k+1)} = D^{-1}(R x^{(k)} + b), \]
-or component-wise $x_i^{(k+1)} = \frac{1}{a_{ii}}\sum_{j\neq i} a_{ij}x_j^{(k)} + \frac{1}{a_{ii}}b_i$. The iteration matrix is $M = D^{-1}R = I - D^{-1}A$. Jacobi converges if and only if $\rho(M)<1$. A sufficient (though not necessary) condition is strict diagonal dominance: $|a_{ii}| > \sum_{j\neq i}|a_{ij}|$ for all $i$. In that case, by the Gershgorin circle theorem, $\rho(M)<1$ holds, so convergence is guaranteed.
-
-For example, for the 1D Poisson matrix ($2$ on diag, $-1$ off), Jacobi's $\rho = |\frac{-1}{2}| = 0.5 < 1$ so it converges. In an exam scenario, one might take a given $A$, compute $M = D^{-1}R$, and find its eigenvalues or spectral radius. Often, symmetry plus a diagonal dominance argument suffices: In 2018 (Problem 4b), $A=\begin{pmatrix}\alpha & \beta &0\\ \beta&\alpha&\beta\\0&\beta&\alpha\end{pmatrix}$ -- one can show $\rho(M)=|\frac{\beta}{\alpha}|$ for large systems, hence require $|\beta|<\alpha$.
-
-Another approach: for SPD $A$, Jacobi converges \textit{if} $A$ is also diagonally dominant or symmetric \textit{and} weakly diagonally dominant with positive diagonal entries (which SPD ensures) -- but as a counterexample, a dense SPD matrix can break Jacobi (2015 exam exhibited $A=I+\kappa E$ where $E$ has all entries 1; $A$ is SPD but Jacobi diverges because off-diagonals are too large, $\rho(M)>1$). So the takeaway is: check diagonal dominance or find $\rho(M)$ explicitly for the matrix at hand.
-
-\textbf{Conjugate Gradient (CG):} CG is the method of choice for large SPD systems. It produces a sequence of approximations $x^{(k)}$ that minimizes the $A$-norm of the error over the Krylov subspace. The notable convergence result:
-\[ \frac{\|e_{k}\|_A}{\|e_0\|_A} \le 2\left(\frac{\sqrt{\kappa}-1}{\sqrt{\kappa}+1}\right)^k, \]
-where $\|v\|_A := \sqrt{v^T A v}$ and $\kappa = \frac{\lambda_{\max}(A)}{\lambda_{\min}(A)}$. In practice, this means the error drops \textit{at least} at a rate of roughly $\left(\frac{\sqrt{\kappa}-1}{\sqrt{\kappa}+1}\right)$ per iteration. For large $\kappa$, this is slow; preconditioning is used to reduce $\kappa$.
-
-In exam problems, you may be given an estimate of eigenvalue bounds. For instance, if $A$ comes from a 2D Poisson with mesh size $h$, one might use known eigenvalue estimates (like $\lambda_{\min}\approx C h^2$, $\lambda_{\max}\approx C'$, so $\sqrt{\kappa}\sim 1/h$). Then plugging numbers: say $\kappa \approx 10^4$, then $(\sqrt{\kappa}-1)/(\sqrt{\kappa}+1)\approx (100-1)/(100+1)\approx 0.9802$. To get a factor $\varepsilon=10^{-7}$, one solves $0.9802^K \approx 10^{-7}$ giving $K \approx \frac{\ln(10^{-7}/2)}{\ln(0.9802)}$ (the ``2'' in front means we may loosely include a factor 2 as well). A simpler estimate: $K \gtrsim \frac{1}{2}\sqrt{\kappa}\ln(1/\varepsilon)$.
-
-In 2013 Exam Problem 2b, for $M+1=100$ (so $M=99$ interior points in each dimension of a 2D grid) they found $\sqrt{\kappa}\approx \pi M/2 \approx 155$, and asked for $K$ with $\varepsilon=10^{-7}$ -- plugging in gives on the order of tens of iterations (the answer was around $K\approx 35$).
-
-In summary, for Jacobi: state the iteration clearly and use either Gershgorin or known spectral radius formulas to decide convergence. For CG: quote the error bound formula and plug in the condition number or eigenvalues to get $K$. Also, note CG's nice property: if $A$ has only $m$ distinct eigenvalues, CG converges in at most $m$ steps (often much faster in practice than worst-case bound). This sometimes can be used if eigenstructure is given.
-
-\paragraph{Pitfalls}
-\begin{itemize}
-    \item \textbf{Applying Jacobi to non-diag.-dominant SPD matrices:} 
-    Students might wrongly assume \enquote{SPD implies Jacobi converges.}
-    \medskip
-    As highlighted in exams, SPD is \textit{not} sufficient -- e.g., the matrix with all off-diagonals $=0.5$ and diagonals $=1$ is SPD for certain sizes but Jacobi diverges. 
-    \medskip
-    The correct condition is $\rho(D^{-1}A - I)<1$. When in doubt, \textit{compute $\rho(M)$ or check a known criterion}. If given a numeric example, actually compute a few iterations or eigenvalues to verify convergence/divergence.
-    \item \textbf{Forgetting prerequisites of CG:} CG only works for symmetric positive-definite $A$. A common error is discussing CG for a non-symmetric matrix or not noticing that a linear system isn't SPD (e.g. an unsymmetric advection-diffusion matrix -- one should mention using BiCG or GMRES in reality, but if asked about CG, likely $A$ was SPD). If an exam problem implicitly assumes SPD (as many do when referencing CG), ensure you mention symmetry and definiteness as justification for applying CG.
-    \item \textbf{Mishandling the convergence bound:} The formula with $(\sqrt{\kappa}-1)/(\sqrt{\kappa}+1)$ can be tricky. Don't confuse $\kappa$ with $\sqrt{\kappa}$ in plugging values. Also, the factor 2 in front means after $k$ iterations, error $\le 2(\frac{\sqrt{\kappa}-1}{\sqrt{\kappa}+1})^k$ -- for large $k$ this 2 is negligible compared to the exponential decay, but for estimating \textit{exact} $K$ it might matter by a couple iterations. If unsure, you can drop the 2 for a rough estimate (as is often acceptable). Another pitfall: using $\kappa$ instead of $\sqrt{\kappa}$ in the fraction -- remember it's $\sqrt{\kappa}$ in that formula.
-    \item \textbf{Stopping criterion vs error norm:} Exams might use the $A$-norm or energy norm for error. Be clear on what $\|e_K\|_A \le \varepsilon \|e_0\|_A$ means -- it's a relative error in the energy norm. Don't mix this up with, say, $\|r_k\|_2$ (residual norm) unless given a formula for that. If only eigenvalue bounds are given, stick to the $A$-norm convergence as above. If they ask for iterations to get $\|e_k\|_2/\|e_0\|_2 < \varepsilon$, you might note $\|e\|_2 \le \|e\|_A/\sqrt{\lambda_{\min}}$ to connect $A$-norm and 2-norm. Generally, clarify your norm assumptions to avoid confusion.
-\end{itemize}
-
-\section{Two-Hour Mock-Exam Checklist}
-
-\begin{itemize}[leftmargin=*]
-    \item \textbf{Derive finite difference formulas quickly:} Remember central difference for $u''(x) \approx \frac{u_{i-1}-2u_i+u_{i+1}}{h^2}$ (second order). For first derivative upwind vs central: central $\frac{u_{i+1}-u_{i-1}}{2h}$, upwind $\frac{u_i - u_{i-1}}{h}$ (first order). Re-derive if forgotten by Taylor expanding two points.
-
-    \item \textbf{Max-norm error bound strategy:} Identify if the scheme matrix is an M-matrix (diag dom with non-neg off-diagonals). If yes, consider using DMP: \textit{Assume} interior error max and derive contradiction. Alternatively, recall $\|A^{-1}\|_{∞}$ for common matrices: for 1D Laplace $A$, $\|A^{-1}\|_{∞} = 1$ (each row of $A^{-1}$ sums to 1). Use $\|e\|_{∞} \le \|A^{-1}\|_{∞}\|\tau\|_{∞}$.
-
-    \item \textbf{Discrete Maximum Principle conditions:} Check $a_{ii} \ge \sum_{j\ne i}a_{ij}$ and $a_{ij}\le 0$ (for $L_h u = f$ form) or equivalent. Write the inequality form and ensure you correctly identify the sign of $f$: e.g., to use DMP, typically write $L_h e = \tau$ and say for sufficiently small $h$, $\tau_i \le C h^p$ implies interior $e_i$ bounded by boundary $e$ plus $\tau$ term. Have a simple 1D proof outline ready (as done above).
-
-    \item \textbf{Von Neumann analysis:} Write down the ansatz $U^n_m = \zeta^n e^{i\beta m h}$. Derive $\zeta$ formula carefully. Remember common results: for advection $u_t + a u_x=0$, FTBS (upwind) stability if $|a|\frac{k}{h} \le 1$; for diffusion $u_t=\nu u_{xx}$, FTCS stability if $\nu \frac{k}{h^2}\le \frac{1}{2}$. If stuck, test extreme modes: assume $u^n_m = (+1)^m$ and $(-1)^m$ to check growth.
-
-    \item \textbf{Weak form essentials:} \textit{Integration by parts:} $\int (p u' v' + q u v) = \int f v$ after IBP for $p u''$. Boundary terms: $p u' v|_{a}^{b}$, which vanish if $v=0$ at boundaries. Always impose homogeneous BC in function space. If non-homog. BC: do $u = w + \tilde{u}$ trick (with $w$ satisfying BC). Know the standard weak form for Poisson: $\int \nabla u \cdot \nabla v = \int f v$.
-
-    \item \textbf{Galerkin linear system:} Stiffness matrix formula: $A_{ij} = \int \nabla \phi_i \cdot \nabla \phi_j$ (plus $\int q\phi_i\phi_j$ if reaction term). Load: $F_i=\int f \phi_i$. For linear 1D hat functions: $A_{i,i}=2/h$, $A_{i,i+1}=A_{i+1,i}=-1/h$. Quickly recall the assembled matrix looks like (for $n$ interior nodes) $\frac{1}{h}\mathrm{tridiag}(-1,2,-1)$.
-
-    \item \textbf{Matrix properties to mention:}
-          \begin{itemize}
-              \item \textbf{Symmetric:} Yes, if derived from variational form. From bilinear form $a(u,v)$, we get $A_{ij}=a(\phi_i,\phi_j)=a(\phi_j,\phi_i)=A_{ji}$.
-
-              \item \textbf{Positive-definite:} Yes, for diffusion operators. Energy argument: $v^T A v = \int (\nabla v)^2 > 0$ for nonzero $v$.
-
-              \item \textbf{Sparsity/bandwidth:} In 1D, bandwidth 1 (tridiagonal). Each row has at most 3 nonzeros since nodes only connect to nearest neighbors.
-
-              \item \textbf{Block structure (2D):} For 2D problems, bandwidth is larger but still sparse. Typically 5 nonzeros per row for 5-point stencil, corresponding to center node plus its 4 neighbors.
-          \end{itemize}
-    \item \textbf{Jacobi iteration:}
-          \begin{itemize}
-              \item \emph{Formula:}
-                    \[
-                        x_i^{new} = \frac{1}{a_{ii}}\Big(b_i - \sum_{j\neq i}a_{ij}x_j^{old}\Big).
-                    \]
-              \item \emph{Convergence:}
-                    require $\max_j |\frac{-a_{ij}}{a_{ii}}| < 1$ in some norm. If time is short, state diagonal dominance condition.
-                    Remember Jacobi's spectral radius for simple cases: for $2\times2$ SPD $ \begin{pmatrix}a & b\\ b & a\end{pmatrix}$, $\rho(J) = |b|/a$.
-          \end{itemize}
-    \item \textbf{Gauss--Seidel:} (If mentioned) It's like Jacobi but sequential update, generally converges faster. Condition for GS is a bit weaker than Jacobi (still usually need diagonal dominance for guarantee). Not often asked in depth, but recall it if needed: GS iteration matrix eigenvalues are those of Jacobi squared, roughly.
-
-    \item \textbf{Conjugate Gradient facts:} Only for SPD matrices. Each iteration minimizes error over a growing Krylov subspace. Know formula for error after $k$ steps (above). In practice, error drops rapidly: good rule, after \textasciitilde$n/2$ steps usually very small error for nice spectra. If asked, mention preconditioning improves $\kappa$.
-
-    \item \textbf{CG iteration count estimate:} Use $\frac{\sqrt{\kappa}-1}{\sqrt{\kappa}+1}$. For rough estimates: if $\kappa = 10^4$, $\sqrt{\kappa}=100$, then error reduces by factor $\approx0.98$ each iteration, need on order of $\frac{1}{0.02}\ln(1/\varepsilon)$ iterations (for $\varepsilon=10^{-6}$, that's \textasciitilde$50\ln(10^6)\approx 50\cdot14 \approx 700$; but CG often outperforms worst-case). If eigenvalues cluster, convergence is faster. If time, mention these nuances but focus on using the bound formula correctly.
-
-    \item \textbf{Final sanity checks:} Units and limits -- e.g., CFL condition $k \to 0$ or $h \to 0$ behavior should make sense (smaller $h$ demands smaller $k$ for explicit schemes). For FEM, if something seems off (like a stiffness matrix entry negative when it should be positive), recheck the integration. For iterative methods, if $\rho>1$, clearly state ``diverges.'' If $\rho<1$, maybe compute a numerical example iteration or two to illustrate convergence rate. And always link back to the theory: e.g., ``Since $|b/a|<1$, Jacobi will converge (spectral radius = $|b|/a$)''.
-\end{itemize}
-
-\section{Maximum-Norm Error Bounds}
-
-\subsection{Step-by-Step Strategy}
+\section{Step-by-Step Strategy}
 
 \begin{enumerate}
     \item \textbf{Set up the error equation:} Let $u(x)$ be the exact solution and $U_m$ the numerical solution at grid point $x_m$. Define the error $e_m = U_m - u(x_m)$. Derive the error equation that $e_m$ satisfies by subtracting the discrete equation from the continuous one. For a linear problem, this often has the form $L_h e_m = \tau_m$, where $L_h$ is the discrete operator and $\tau_m$ is the local truncation error at $x_m$. Make sure to apply homogeneous boundary conditions to $e$ (e.g. $e=0$ at Dirichlet boundaries).
@@ -365,7 +94,7 @@ In summary, for Jacobi: state the iteration clearly and use either Gershgorin or
     \item \textbf{Conclude the error bound:} Substitute the truncation error bound from step 2. You obtain an estimate like $\displaystyle \max_m |e_m| \leq KCh^p$. Thus, the global error in max-norm is $O(h^p)$, and you can confidently state the error bound (including the constant if needed). For example, one can prove for a 1D Poisson problem on $[a,b]$ that $\max_{m}|u(x_m)-U_m| \leq \frac{(b-a)^2}{2}\max_m|\tau_m|$, and hence with $|\tau_m|=O(h^2)$ one gets $\|e\|_\infty = O(h^2)$.
 \end{enumerate}
 
-\subsection{Common Slips to Avoid}
+\section{Common Slips to Avoid}
 
 \begin{itemize}
     \item Don't assume the scheme is stable without checking the matrix structure. An error bound in $\ell_\infty$ norm typically requires the discrete operator to satisfy a maximum principle or a known norm bound.
@@ -379,9 +108,54 @@ In summary, for Jacobi: state the iteration clearly and use either Gershgorin or
     \item Don't lose track of the goal: after deriving $L_h e = \tau$, your objective is to show $\|e\|_\infty$ is bounded by a constant times $\|\tau\|_\infty$. Each step (matrix properties, maximum principle, etc.) should contribute to that end.
 \end{itemize}
 
-\subsection{Discrete Maximum Principle (DMP)}
+\chapter{Discrete Maximum Principle (DMP)}
 
-\subsubsection{Step-by-Step Strategy}
+\paragraph{Typical exam questions}
+\begin{itemize}
+    \item \enquote{Prove that $-L_h$ has positive coefficients and satisfies a discrete maximum principle.} For instance, given a difference operator $L_h u_i = \alpha u_{i-1} - \beta u_i + \gamma u_{i+1}$ with $\alpha,\beta,\gamma>0$ and $\beta \ge \alpha+\gamma$, show that if $L_h v \le 0$ for interior points and $v$ is zero on the boundary, then $v_i \le 0$ for all interior $i$.
+    \item \enquote{Show that the scheme preserves the maximum principle.} E.g., for a 2D Laplace equation discretization, prove that if $f_{ij}\ge0$ (or $\le0$) and $u$ satisfies $L_h u = f$ with zero boundary values, then $u_{ij}$ attains its extrema on the boundary (non-positive inside in this case).
+\end{itemize}
+
+\begin{outline}{Discrete Maximum Principle (DMP)}{}
+    The DMP proof is typically by contradiction.
+    \begin{enumerate}
+        \item Assume the discrete solution attains a positive interior maximum at node $m$ (so $v_m = \max_n v_n > 0$ and $v_m \ge v_{m\pm1}$).
+        \item For a 1D three-point stencil under the given conditions,
+              $$
+                  -L_h v_m = \alpha v_{m-1} - \beta v_m + \gamma v_{m+1} \le 0
+              $$
+        \item plugging in the extremum gives
+              $$
+                  -\beta v_m + \alpha v_{m-1} + \gamma v_{m+1} \le 0.
+              $$
+        \item But at $m$, $v_{m-1},v_{m+1}\le v_m$, so this implies
+              $$
+                  -\beta v_m + (\alpha+\gamma) v_m \le 0 \Rightarrow (\alpha+\gamma - \beta)v_m \le 0. \quad \text{with} \quad \beta \ge \alpha+\gamma
+              $$
+        \item this forces $v_m \le 0$, contradicting $v_m>0$.
+        \item[$\Rightarrow$] Hence no interior node can exceed the boundary maximum (A similar argument holds for a negative minimum).
+    \end{enumerate}
+    \medskip
+    In \textbf{higher dimensions} or more complex stencils, one uses an induction on neighbors or graph argument but the essence is the same:
+    \begin{itemize}
+        \item if $-L_h$ has all positive off-diagonals and each diagonal $\beta_{ii} \ge \sum_{j\neq i}\beta_{ij}$
+        \item Then $L_h v \le 0$ forces $v$'s max to occur on the boundary (a property of M-matrices).
+        \item This principle is then used to show stability: taking $v = e$ (error) or $v = e \pm \phi$ for some auxiliary $\phi$, one derives $\max |e|$ bounded by boundary values or forcing term.
+    \end{itemize}
+    \medskip
+    For example, in 2024 Exam Problem 1, after showing $-L_h$ positive, one had to prove DMP and then conclude max-norm stability by applying it to the error with a suitable supersolution.\footnote{Owren (2017): pp. 75--78 -- Definition and use of the discrete max principle for elliptic difference equations (implied by M-matrix conditions).}
+\end{outline}
+
+\begin{pitfalls}{}{}
+    \begin{itemize}
+        \item \textbf{Coefficient conditions:} Forgetting the precise conditions under which DMP holds. Counterexample: If the scheme is not diagonally dominant (e.g. $\beta < \alpha+\gamma$), the DMP conclusion may fail. Always state and check that $-L_h$ yields $\beta_{ii}\ge \sum_{j\neq i}\beta_{ij}$ and off-diagonals $\ge0$ (no negative connections), otherwise the principle can't be applied.
+        \item \textbf{Boundary values in DMP:} A common oversight is mishandling nonzero Dirichlet or Neumann boundary conditions. The simple form of DMP assumes homogeneous Dirichlet BC (boundary $v=0$). If $v$ is nonzero on the boundary, the conclusion should be $\max_{all} v = \max(\max_{\text{boundary}}v, 0)$. Adjust the statement accordingly or consider applying DMP to $v - B$ where $B$ is an extension of boundary values into the domain.
+        \item \textbf{Sign convention errors:} Ensure the inequality direction is correct. DMP proofs can be done with $L_h v \ge 0$ or $\le0$; be consistent. If you assume $L_h v \le 0$ (as is common when $L_h$ is the Laplace operator approximation), you conclude $v$ has no positive interior max. If the inequality is flipped, the conclusion flips to no negative interior min. Keep track of these details to avoid losing marks on logical accuracy.
+    \end{itemize}
+\end{pitfalls}
+\clearpage
+
+\section{Step-by-Step Strategy}
 
 \begin{enumerate}
     \item \textbf{Recognize the scenario for DMP:} The discrete maximum principle typically applies to linear steady-state problems (like Laplace or Poisson equations) discretized with schemes that produce an M-matrix. Write the interior grid equations in the canonical form:
@@ -400,7 +174,7 @@ In summary, for Jacobi: state the iteration clearly and use either Gershgorin or
     \item \textbf{State the conclusion clearly:} Under the given conditions (typically, $a_{ii}>0$, $a_{ij}\le0$, diagonal dominance, etc.), no interior node can exceed the maximum boundary value or go below the minimum boundary value. This property ensures that if the boundary values of a discrete problem are all within a certain range, the interior will not "overshoot" that range. It's a powerful tool for ensuring stability of the solution, since it prevents non-physical oscillations or blow-up in the interior.
 \end{enumerate}
 
-\subsubsection{Common Slips to Avoid}
+\section{Common Slips to Avoid}
 
 \begin{itemize}
     \item \textbf{Sign errors:} Ensure that you correctly identify the signs of coefficients. DMP usually requires something like $a_{kk} = \sum_{j\ne k}(-a_{kj})$, with $a_{kj} \le 0$ for neighbors. A common mistake is to carry a wrong sign through the inequality chain. Write out the inequality carefully when assuming $U_k$ is max.
@@ -414,9 +188,44 @@ In summary, for Jacobi: state the iteration clearly and use either Gershgorin or
     \item \textbf{Jumping to conclusions:} Don't just state the DMP result; show the steps (via contradiction). In exams, full credit usually requires clearly articulating why the interior value can't exceed the boundary value.
 \end{itemize}
 
-\section{Von Neumann Stability Analysis}
+\chapter{Von Neumann Stability Analysis}
 
-\subsection{Step-by-Step Strategy}
+\paragraph{Typical exam questions}
+\begin{itemize}
+    \item \enquote{Perform a von Neumann stability analysis of the scheme and find the CFL condition.}For example, given an explicit scheme for $u_t + au_x = 0$ or $u_t = \nu u_{xx}$, determine for what time-step $k$ relative to mesh $h$ the method is stable (often yielding $ak/h \le 1$ or $\nu k/h^2 \le 1/2$, etc.).
+    \item \enquote{Is the scheme unconditionally stable or conditionally stable? Justify by Fourier analysis.} E.g., backward Euler for diffusion is unconditionally stable, which can be confirmed by showing the amplification factor $|\xi| = 1/(1+2r\sin^2(\frac{\beta h}{2})) < 1$ for all $r=k/h^2>0$. Conversely, for an explicit scheme, find the condition on $r$ so that $|\xi| \le 1$ for all Fourier modes $\beta$.
+\end{itemize}
+
+\begin{outline}{Von Neumann Stability Analysis}{}
+    \begin{enumerate}
+        \item Assume a solution of the form $U^n_m = \zeta^n e^{i\beta x_m}$ (where $x_m = m h$).
+        \item Substitute this into the homogeneous linear difference scheme. This yields a characteristic equation for the amplification factor $\zeta$. For a two-level scheme, one typically gets a relation $\zeta = G(\beta; \mu)$, where $\mu$ is the Courant number or similar parameter (e.g. $\mu=ak/h$ for advection, or $r=\nu k/h^2$ for diffusion).
+        \item The Von Neumann criterion demands $|\zeta(\beta)| \le 1$ for all Fourier modes $\beta$ in $[-\pi/h,\pi/h]$.
+              In practice, one often checks the worst-case $\beta$ (like $\beta h = \pi$ for oscillatory mode).
+              \begin{example}{FTCS: Heat equation}{}
+                  For the FTCS scheme of the heat equation $u_t=\nu u_{xx}$ (forward time, central space), one finds $\zeta = 1 - 4r\sin^2(\frac{\beta h}{2})$. The stability requirement $|\zeta| \le 1$ for all $\beta$ leads to $|1 - 4r\sin^2(\theta)| \le 1$ $\forall \theta$, which simplifies to $4r\sin^2\theta \le 2$ (worst at $\sin^2\theta=1$), giving $r=\nu k/h^2 \le 1/2$. This is the familiar CFL condition $\nu k \le \frac{1}{2}h^2$.
+              \end{example}
+              \begin{example}{Upwind advection}{}
+                  $\zeta = 1 - \mu(1-e^{-i\beta h})$; requiring $|\zeta| \le 1$ yields $\mu \le 1$ (CFL $a k \le h$).
+              \end{example}
+        \item If the scheme is unconditionally stable (e.g. Crank--Nicolson or backward Euler for diffusion), the analysis will show $|\zeta| \le 1$ for all $r>0$ (often straightforward since $\zeta = \frac{1}{1+4r\sin^2(\frac{\beta h}{2})}$ in backward Euler, which is always $<1$).
+        \item Present the result as a clear condition (like $k \le h/|a|$ or $k \le h^2/(2\nu)$).
+        \item If asked for amplification factor, give $\zeta(\beta)$ explicitly;
+        \item if asked for stability, provide the derived inequality and conclude whether it's conditional or unconditional. Always mention the worst-case mode that dictates the condition (usually the highest frequency $\beta h = \pi$).
+    \end{enumerate}
+    \medskip
+    The von Neumann criterion can be phrased as: the scheme is stable iff $\exists \mu \ge 0$ such that $|\zeta| \le 1 + \mu k$ (Lax's criterion) which essentially reduces to $|\zeta| \le 1$ as $k \to 0$.\footnote{Owren (2017): §5.9, pp. 60--62 -- Von Neumann's stability criterion and examples.}
+\end{outline}
+
+\begin{pitfalls}{}{}
+    \begin{itemize}
+        \item \textbf{Complex roots and damping:} If $\zeta$ is complex, you must check $|\zeta| \le 1$, not $\Re(\zeta) \le 1$. Students sometimes erroneously set real and imaginary parts $\le 1$ separately. Use $|\zeta|^2 = \zeta \overline{\zeta}$ to include both amplitude and phase. For instance, with diffusion-advection combinations, $\zeta$ can be complex, so compute $|\zeta|^2$ properly.
+        \item \textbf{Ignoring worst-case $\beta$:} It's a common mistake to plug in $\beta=0$ and conclude stability (since $\zeta(0)=1$ often). The most restrictive case is typically $\beta h = \pi$ (mode oscillating as +1, -1, +1, -1), so always evaluate at the highest frequency. If the scheme has multiple modes (multi-step schemes), consider all characteristic equation roots.
+        \item \textbf{CFL vs absolute stability:} Don't confuse von Neumann CFL conditions with other stability notions. For linear constant-coefficient PDEs they coincide, but if the exam problem has variable coefficients or nonlinear terms, von Neumann analysis is only a necessary condition. So, state clearly that you assume constant coefficients or small perturbation analysis. If the coefficients are time- or space-dependent (as in some exam tasks), you might use a ``frozen coefficient'' analysis and mention that the CFL condition should hold for the maximum characteristic speed in the domain.
+    \end{itemize}
+\end{pitfalls}
+\clearpage
+\section{Step-by-Step Strategy}
 
 \begin{enumerate}
     \item \textbf{Write the update formula in a form suitable for Fourier analysis:} Take the difference scheme (typically for an initial-value PDE problem) and express it as an update equation. For example, a time-marching scheme might be written as $U^{n+1}_m = \sum_j \alpha_j U^n_{m+j}$ (explicit scheme) or $\sum_j \alpha_j U^{n+1}_{m+j} = \sum_j \beta_j U^n_{m+j}$ (for an implicit or multi-step scheme). Ensure the coefficients $\alpha_j, \beta_j$ are clearly identified. The scheme should have constant coefficients in space and time for Von Neumann analysis to apply.
@@ -434,7 +243,7 @@ In summary, for Jacobi: state the iteration clearly and use either Gershgorin or
     \item \textbf{Verify the analysis assumptions:} Remember that Von Neumann analysis assumed linear constant-coefficient PDE and either an infinite or periodic domain (so that Fourier modes form a basis of solutions). In an exam answer, it's good to remark that this method gives a necessary condition for stability (and for linear constant coefficient problems, it's also sufficient). If the problem has boundaries or variable coefficients, von Neumann analysis is applied at least locally or as an estimate. But usually exam questions are set up so that full von Neumann analysis is valid (periodic BC or implicitly assuming large domain).
 \end{enumerate}
 
-\subsection{Common Slips to Avoid}
+\section{Common Slips to Avoid}
 
 \begin{itemize}
     \item \textbf{Algebraic mistakes in substitution:} It's easy to drop a factor of $e^{ikh}$ or mis-handle the complex algebra. Write out a small example if unsure: for instance, check that a term like $U^n_{m+1}$ becomes $\xi^n e^{ik(m+1)h} = e^{ikh} \xi^n e^{ikmh}$. Keeping the exponent factor separate helps isolate the $\xi$ relation correctly.
@@ -450,7 +259,122 @@ In summary, for Jacobi: state the iteration clearly and use either Gershgorin or
     \item \textbf{Distinguish stability vs. convergence:} Von Neumann analysis addresses stability. Sometimes students jump to saying "therefore the scheme is convergent if this holds." Technically, convergence requires consistency as well (Lax equivalence theorem). It's fine to mention convergence, but only after stating stability. In an exam though, usually the task is just to find the stability condition.
 \end{itemize}
 
-\section{Weak Form \& Galerkin Finite Element Method}
+\chapter{Iterative Solvers (Jacobi \& Conjugate Gradient)}
+\paragraph{Typical exam questions}
+\begin{itemize}
+    \item \enquote{Will the Jacobi iteration converge for this system? For which parameter values?} e.g., given a $3\times3$ matrix $A(\alpha,\beta)$, determine for what $\alpha,\beta$ the spectral radius $\rho(D^{-1}R)<1$. In 2018 Exam (Problem 4b), students solved a specific $3\times3$ system, finding that Jacobi converges if $\alpha > |\beta|$ (ensuring diagonal dominance).
+    \item \enquote{Show that the Jacobi method converges for any SPD $2\times2$ matrix, but can diverge for some SPD $n\times n$.} (This type of question appeared in 2015/2016 exams.) It tests understanding that SPD is not a sufficient convergence condition for Jacobi in general -- counterexamples exist when off-diagonals are large despite SPD.
+    \item \enquote{Estimate the number of CG iterations needed to reach tolerance $\varepsilon$.} For example, \textit{``Given eigenvalues of $A$ lie in $[a,b]$, how many iterations $K$ are needed for $\frac{\|e_K\|_A}{\|e_0\|_A}\le \varepsilon$?''} -- using the CG convergence bound involving $\sqrt{b/a}$ (condition number). An exam might give specific $a,b$ or ask you to use an approximate ratio from an eigenvalue formula of $A$.
+\end{itemize}
+
+\begin{outline}{Jacobi}{}
+    \textbf{Jacobi Method:} We split $A = D - R$ where $D=\operatorname{diag}(A)$ and $R = D - A$ (so $R$ contains off-diagonals). The Jacobi iteration is:
+    \[ x^{(k+1)} = D^{-1}(R x^{(k)} + b), \]
+    or component-wise $x_i^{(k+1)} = \frac{1}{a_{ii}}\sum_{j\neq i} a_{ij}x_j^{(k)} + \frac{1}{a_{ii}}b_i$. The iteration matrix is $M = D^{-1}R = I - D^{-1}A$. Jacobi converges if and only if $\rho(M)<1$. A sufficient (though not necessary) condition is strict diagonal dominance: $|a_{ii}| > \sum_{j\neq i}|a_{ij}|$ for all $i$. In that case, by the Gershgorin circle theorem, $\rho(M)<1$ holds, so convergence is guaranteed.
+
+    For example, for the 1D Poisson matrix ($2$ on diag, $-1$ off), Jacobi's $\rho = |\frac{-1}{2}| = 0.5 < 1$ so it converges. In an exam scenario, one might take a given $A$, compute $M = D^{-1}R$, and find its eigenvalues or spectral radius. Often, symmetry plus a diagonal dominance argument suffices: In 2018 (Problem 4b), $A=\begin{pmatrix}\alpha & \beta &0\\ \beta&\alpha&\beta\\0&\beta&\alpha\end{pmatrix}$ -- one can show $\rho(M)=|\frac{\beta}{\alpha}|$ for large systems, hence require $|\beta|<\alpha$.
+
+    Another approach: for SPD $A$, Jacobi converges \textit{if} $A$ is also diagonally dominant or symmetric \textit{and} weakly diagonally dominant with positive diagonal entries (which SPD ensures) -- but as a counterexample, a dense SPD matrix can break Jacobi (2015 exam exhibited $A=I+\kappa E$ where $E$ has all entries 1; $A$ is SPD but Jacobi diverges because off-diagonals are too large, $\rho(M)>1$). So the takeaway is: check diagonal dominance or find $\rho(M)$ explicitly for the matrix at hand.
+\end{outline}
+\begin{outline}{Conjugate Gradient (CG)}{}
+    \textbf{Conjugate Gradient (CG):} CG is the method of choice for large SPD systems. It produces a sequence of approximations $x^{(k)}$ that minimizes the $A$-norm of the error over the Krylov subspace. The notable convergence result:
+    \[ \frac{\|e_{k}\|_A}{\|e_0\|_A} \le 2\left(\frac{\sqrt{\kappa}-1}{\sqrt{\kappa}+1}\right)^k, \]
+    where $\|v\|_A := \sqrt{v^T A v}$ and $\kappa = \frac{\lambda_{\max}(A)}{\lambda_{\min}(A)}$. In practice, this means the error drops \textit{at least} at a rate of roughly $\left(\frac{\sqrt{\kappa}-1}{\sqrt{\kappa}+1}\right)$ per iteration. For large $\kappa$, this is slow; preconditioning is used to reduce $\kappa$.
+\end{outline}
+
+In exam problems, you may be given an estimate of eigenvalue bounds. For instance, if $A$ comes from a 2D Poisson with mesh size $h$, one might use known eigenvalue estimates (like $\lambda_{\min}\approx C h^2$, $\lambda_{\max}\approx C'$, so $\sqrt{\kappa}\sim 1/h$). Then plugging numbers: say $\kappa \approx 10^4$, then $(\sqrt{\kappa}-1)/(\sqrt{\kappa}+1)\approx (100-1)/(100+1)\approx 0.9802$. To get a factor $\varepsilon=10^{-7}$, one solves $0.9802^K \approx 10^{-7}$ giving $K \approx \frac{\ln(10^{-7}/2)}{\ln(0.9802)}$ (the ``2'' in front means we may loosely include a factor 2 as well). A simpler estimate: $K \gtrsim \frac{1}{2}\sqrt{\kappa}\ln(1/\varepsilon)$.
+
+In 2013 Exam Problem 2b, for $M+1=100$ (so $M=99$ interior points in each dimension of a 2D grid) they found $\sqrt{\kappa}\approx \pi M/2 \approx 155$, and asked for $K$ with $\varepsilon=10^{-7}$ -- plugging in gives on the order of tens of iterations (the answer was around $K\approx 35$).
+
+In summary, for Jacobi: state the iteration clearly and use either Gershgorin or known spectral radius formulas to decide convergence. For CG: quote the error bound formula and plug in the condition number or eigenvalues to get $K$. Also, note CG's nice property: if $A$ has only $m$ distinct eigenvalues, CG converges in at most $m$ steps (often much faster in practice than worst-case bound). This sometimes can be used if eigenstructure is given.
+
+\begin{pitfalls}{}{}
+    \begin{itemize}
+        \item \textbf{Applying Jacobi to non-diag.-dominant SPD matrices:}
+              Students might wrongly assume \enquote{SPD implies Jacobi converges.}
+
+              As highlighted in exams, SPD is \textit{not} sufficient -- e.g., the matrix with all off-diagonals $=0.5$ and diagonals $=1$ is SPD for certain sizes but Jacobi diverges.
+
+              The correct condition is $\rho(D^{-1}A - I)<1$. When in doubt, \textit{compute $\rho(M)$ or check a known criterion}. If given a numeric example, actually compute a few iterations or eigenvalues to verify convergence/divergence.
+        \item \textbf{Forgetting prerequisites of CG:} CG only works for symmetric positive-definite $A$. A common error is discussing CG for a non-symmetric matrix or not noticing that a linear system isn't SPD (e.g. an unsymmetric advection-diffusion matrix -- one should mention using BiCG or GMRES in reality, but if asked about CG, likely $A$ was SPD). If an exam problem implicitly assumes SPD (as many do when referencing CG), ensure you mention symmetry and definiteness as justification for applying CG.
+        \item \textbf{Mishandling the convergence bound:} The formula with $(\sqrt{\kappa}-1)/(\sqrt{\kappa}+1)$ can be tricky. Don't confuse $\kappa$ with $\sqrt{\kappa}$ in plugging values. Also, the factor 2 in front means after $k$ iterations, error $\le 2(\frac{\sqrt{\kappa}-1}{\sqrt{\kappa}+1})^k$ -- for large $k$ this 2 is negligible compared to the exponential decay, but for estimating \textit{exact} $K$ it might matter by a couple iterations. If unsure, you can drop the 2 for a rough estimate (as is often acceptable). Another pitfall: using $\kappa$ instead of $\sqrt{\kappa}$ in the fraction -- remember it's $\sqrt{\kappa}$ in that formula.
+        \item \textbf{Stopping criterion vs error norm:} Exams might use the $A$-norm or energy norm for error. Be clear on what $\|e_K\|_A \le \varepsilon \|e_0\|_A$ means -- it's a relative error in the energy norm. Don't mix this up with, say, $\|r_k\|_2$ (residual norm) unless given a formula for that. If only eigenvalue bounds are given, stick to the $A$-norm convergence as above. If they ask for iterations to get $\|e_k\|_2/\|e_0\|_2 < \varepsilon$, you might note $\|e\|_2 \le \|e\|_A/\sqrt{\lambda_{\min}}$ to connect $A$-norm and 2-norm. Generally, clarify your norm assumptions to avoid confusion.
+    \end{itemize}
+\end{pitfalls}
+
+\chapter{Finite Element Method (FEM) Problem-Solving Guide}
+
+\section{Weak Form \& Galerkin FEM}
+\paragraph{Typical exam questions}
+\begin{itemize}
+    \item Derive the weak/variatonal form of the given BVP. For example, start with $- (p(x)u')' + q(x)u = f(x)$ on $[a,b]$ with $u(a)=u(b)=0$, and derive $\int_a^b pu'v' + quv = \int_a^b fv$ for all test functions $v$.
+    \item State the Galerkin method and set up the linear system. Often following the above, choose piecewise linear basis functions on a mesh and deduce that $u_h(x)=\sum_j U_j \phi_j(x)$ leads to the linear system $A\mathbf{U}=\mathbf{F}$ with $A_{ij}=\int p\phi'_i\phi'_j + q\phi_i\phi_jdx$ and $F_i=\int f\phi_idx$.
+    \item Explain why $A$ is symmetric positive-definite (SPD). Usually, argue that $A_{ij} = a(\phi_j,\phi_i)$ for some bilinear form $a(\cdot,\cdot)$, hence $A=A^T$; and for PD, $a(v,v)=0$ implies $v=0$ in $V$ (by coercivity of the underlying PDE operator).
+\end{itemize}
+\begin{outline}{Weak Form \& Galerkin FEM}{}
+    The weak form is derived from the PDE by multiplying by a test function and integrating by parts. The Galerkin method then approximates the solution in a finite-dimensional subspace.
+    \medskip
+    \begin{enumerate}
+        \item Start by multiplying the PDE by a test function $v(x)$ and integrating over the domain.
+        \item For a second-order ODE/PDE, integration by parts is performed to shift derivatives from $u$ onto $v$.
+              In a classic example, $-u''(x)=f(x)$ on $(0,1)$ with $u(0)=u(1)=0$:
+              multiply by $v$ and integrate,
+              $$\int_0^1 -u''(x)v(x)dx = \int_0^1 f(x)v(x)dx.$$
+
+        \item Integrate the left by parts:
+              $$\int_0^1 -u'' vdx = \int_0^1 u' v'dx - [u'v]_0^1.$$
+              The boundary term vanishes because $v(0)=v(1)=0$ for admissible test functions (they must satisfy the homogeneous BC).
+        \item This yields the weak form:
+              \begin{align*}
+                  \text{find} \; u \in V \;  \text{s.t} \int_0^1 u' v'dx = \int_0^1 f vdx, \; \forall \, v\in V \; (\subset V=H^1_0(0,1)).
+              \end{align*}
+              Where the Sobolev space $H^1_0(0,1) = \{u \in H^1(0,1) : u(0)=u(1)=0\}$ is the space of piecewise linear functions vanishing at the boundary.
+        \item Next, apply the \textbf{Galerkin method}: restrict to a finite-dimensional subspace $V_h \subset V$ spanned by basis functions $\{\phi_j(x)\}_{j=0}^M$, typically hat functions at mesh nodes:
+              \begin{align*}
+                  \phi_j(x) = \begin{cases}
+                                  1 - |x-x_j|/h & \text{if } x \in [x_j-h,x_j+h] \\
+                                  0             & \text{otherwise}
+                              \end{cases} \\
+                   & =
+                  \begin{cases}
+                      \frac{x-x_{j-1}}{x_j-x_{j-1}} & \text{if } x \in [x_{j-1},x_j] \\
+                      \frac{x_{j+1}-x}{x_{j+1}-x_j} & \text{if } x \in [x_j,x_{j+1}] \\
+                      0                             & \text{otherwise}
+                  \end{cases}
+                  \tag{(hat function)}
+              \end{align*}
+        \item Assume approximate solution $u_h(x)=\sum_{j} U_j \phi_j(x).$
+              Plugging $u_h$ into the weak form and choosing $v=\phi_i$ in turn yields the linear system:
+              $$\sum_j U_j \int_0^1 \phi'_j \phi'_idx = \int_0^1 f\phi_idx \quad \forall i=0,\ldots,M.$$
+              In matrix form,
+              $$A\mathbf{U} = \mathbf{F}$$
+              with entries
+              $$A_{ij}=\int \phi'_i \phi'_j, \quad F_i=\int f\phi_i.$$
+        \item The matrix $A$ is symmetric since $A_{ij} = \int \phi'_i \phi'_j = \int \phi'_j \phi'_i = A_{ji}$ (bilinear form symmetry).
+    \end{enumerate}
+\end{outline}
+Many exams simply expect you to note that $A_{ij}=a(\phi_i,\phi_j)$ for the symmetric bilinear form $a(u,v)=\int pu'v' + quv$, so $A$ is symmetric, and $a(v,v)=0$ implies $v=0$ due to the PDE's coercivity, hence PD.
+
+Finally, note any specifics: e.g., if non-homogeneous BCs, one might incorporate them by a change of variable $u_h = R + w_h$ (lifting the BCs) as seen in some exams (like 2018 Exam Problem 1a). But typically, weak form derivations assume homogeneous BC to simplify.
+
+In summary, the Galerkin procedure involves:
+\begin{enumerate}[label=(\roman{*})]
+    \item derive weak form,
+    \item choose $V_h$ and basis,
+    \item assemble $A$ and $\mathbf{F}$,
+    \item solve $A\mathbf{U}=\mathbf{F}$.
+\end{enumerate}
+These steps are explicitly highlighted in Curry's notes.\footnote{Curry (2018): §2.1, pp. 3--5 -- Derivation of weak form for a 2nd-order ODE; Galerkin method steps.}
+\begin{pitfalls}{}{}
+    \begin{itemize}
+        \item \textbf{Omitting boundary conditions in $V$:} A very common mistake is failing to enforce homogeneous Dirichlet conditions in the test/solution space. If $v$ doesn't vanish on the boundary, the integrated-by-parts formula will have extra boundary terms -- the derived weak form would then be incorrect. Always specify $V$ as, e.g., $H^1_0$ (functions vanishing on Dirichlet boundaries) so that those terms drop out.
+        \item \textbf{Sign errors in integration by parts:} Keep track of the minus sign when moving the derivative: $\int -u''v = \int u'v'$, since $- \int u''v = -[u'v]_a^b + \int u'v'$. It's easy to lose a minus sign or a boundary term. Double-check by differentiating the weak form back to the strong form if possible.
+        \item \textbf{Misidentifying test vs trial functions:} Remember, the weak form $\int a(u,v) = \int f v$ must hold for all $v$ in $V$. In practice, when assembling, we set $v=\phi_i$ to get the $i$th equation. Don't think of ``$v$'' as a single specific function; treat it as an arbitrary test function. This ensures you get a linear system that holds for each basis function weight (hence for all $v$).
+        \item \textbf{Matrix assembly confusion:} Some assume the Galerkin equations magically appear without integration. In fact, you derive $A_{ij} = \int (\text{terms of }\phi_i,\phi_j)$ from the weak form. Avoid plugging trial functions into the strong form directly -- that leads to a collocation or least-squares method, not Galerkin. Stick to the variational form for deriving $A$ and $F$.
+    \end{itemize}
+\end{pitfalls}
+\clearpage
+
 
 \subsection{Step-by-Step Strategy}
 
@@ -493,6 +417,77 @@ In summary, for Jacobi: state the iteration clearly and use either Gershgorin or
 
     \item \textbf{Neglecting to mention the Galerkin orthogonality:} While not always required to state, one powerful interpretation of the Galerkin method is $u_h$ makes the residual orthogonal to the test space: $\int (Lu_h - f)v = 0$ for all $v$ in $V_h$. This is automatically achieved by our construction. If explaining the rationale, you can briefly mention this property (to show you understand why we choose test = basis functions). But focus on the mechanical steps in an exam setting unless asked for theory.
 \end{itemize}
+
+\section{Finite Element Stiffness Matrix Assembly}
+\paragraph{Typical exam questions}
+\begin{itemize}
+    \item \enquote{Compute the element stiffness matrix for [a given element].}
+          For instance, in a 2D Poisson problem with quadratic basis on a reference square (Exam 2016), find the $4\times4$ element matrix
+          $$
+              A^K_{ij} = \iint_K (\nabla \phi_i \cdot \nabla \phi_j)dxdy.
+          $$
+    \item \enquote{Assemble the global matrix.}
+          E.g., given a simple mesh or numbering, add up element contributions to form the final $A$. A common task: confirm that for linear elements in 1D, assembling yields the tridiagonal matrix with $2$ on the diagonal and $-1$ on off-diagonals (scaled by material coefficients and element length) -- essentially the discrete second-derivative matrix.
+    \item \enquote{Discuss the structure of $A$.}
+          Is it symmetric? Banded? What is the bandwidth? Is it an M-matrix? Many exam questions (2013, 2018) asked whether $A$ is tridiagonal, SPD, etc., expecting reasoning from the element connectivity and properties of the bilinear form.
+\end{itemize}
+\begin{outline}{Finite Element Stiffness Matrix Assembly}{}
+
+    The stiffness matrix $A$ is assembled from local element matrices $A^K$.
+    For each finite element element $K$, we compute the local stiffness matrix $A^K$ by integrating basis function gradients over that element.
+
+    For example, in 1D with linear basis on interval $K_k \in [x_k,x_{k+1}]$, there are two local shape functions $\phi_k,\phi_{k+1}$ that are 1 at one node and 0 at the other. Their derivatives on that element are constants: $\phi'_k = -1/h$, $\phi'_{k+1}=1/h$.
+
+    Thus the element matrix is:
+    \begin{align*}
+        A^K = \begin{pmatrix}
+                  \int_K \phi'_k \phi'_kdx    & \int_K \phi'_k \phi'_{k+1}dx    \\[6pt]
+                  \int_K \phi'_{k+1}\phi'_kdx & \int_K \phi'_{k+1}\phi'_{k+1}dx
+              \end{pmatrix} = \int_{x_k}^{x_{k+1}}\frac{1}{h^2} \begin{pmatrix}1 & -1\\ -1 & 1\end{pmatrix} dx = \frac{1}{h}\begin{pmatrix}1 & -1\\ -1 & 1\end{pmatrix},
+    \end{align*}
+
+    since $\int_{x_k}^{x_{k+1}} dx = h$.
+
+    In general, for linear elements the $2\times2$ local matrix always looks like
+
+    $$
+        \frac{p(x_k)}{h}\begin{pmatrix}1&-1\\-1&1\end{pmatrix}
+    $$
+
+    if $p(x)$ is constant on $K$ (or replace $1/h$ by $\int_K p/h$ if variable).
+
+    Higher-order elements yield larger local matrices (e.g. $4\times4$ for a biquadratic square element as in 2016 exam, which require integrating quadratic polynomials -- one can use area coordinates or reference element integration formulas).
+
+    \textbf{Global assembly:} The global matrix $A$ is initially all zeros. For each element $K$ connecting global nodes $(i,j)$, add the entries of $A^K$ into the global $A$ at rows/cols $(i,j)$.
+    In 1D, each element connects node $k$ and $k+1$, so each local matrix adds into the $2\times2$ block of $A$ at indices $(k,k), (k,k+1), (k+1,k), (k+1,k+1)$. After assembling all $M$ intervals, the resulting $A$ has the pattern:
+    $$ A = \frac{1}{h}\begin{pmatrix}
+            1      & -1     & 0      & \cdots & 0      \\
+            -1     & 2      & -1     & \cdots & 0      \\
+            0      & -1     & 2      & -1     & \ddots \\
+            \vdots &        & \ddots & \ddots & -1     \\
+            0      & \cdots & 0      & -1     & 1
+        \end{pmatrix}, $$
+    for homogeneous Dirichlet ends.
+    This is exactly the matrix of the second difference operator.
+
+    In exams, you might only need to assemble a small example by hand.
+    For instance, if $M=2$ (three nodes), assembling the two element matrices yields a $3\times3$ $A$ that you can write out.
+    Always ensure to account for shared nodes: interior nodes accumulate contributions from two elements, hence the $2$ on the diagonal after summing two $1$'s.
+
+    For the \textbf{load vector} $F$, similarly compute local $F^K_i = \int_K f\phi_idx$ and add to global $F$. Often, if $f(x)$ is simple, you can do these integrals (e.g. for linear $\phi$, $F^K = \frac{h}{2}(f(x_k), f(x_{k+1}))^T$ if using midpoint or linear interpolation approximations).
+
+    \textbf{Matrix properties:} From assembly logic, each interior node typically connects to itself and a few neighbors. Thus $A$ is \textbf{sparse} and often banded (bandwidth corresponds to max nodes per element). In 1D, bandwidth is 1 (tridiagonal). In a 2D grid with linear elements, bandwidth is larger but still on the order of $\sqrt{N}$. Exams often expect recognition that $A$ is symmetric (follows from $A_{ij}=A_{ji}$ by construction) and usually \textbf{M-matrix}-like (positive diagonal, negative off-diagonals for diffusion problems).
+\end{outline}
+For example, in 2013 Problem 1b, after deriving the FEM system, one had to comment: Is $A$ symmetric? (Yes, $A=A^T$), Is it positive definite? (Yes, weak form is coercive), Is it tridiagonal? (In 1D, yes; in 2D, it's banded but not strictly tri-). By assembling or simply by knowing the support of basis functions (each linear basis overlaps only with its immediate neighbors), you can answer such questions confidently.\footnote{Curry (2018): §2.1--2.2, pp. 5--7 -- Definition of stiffness matrix and load vector; elementwise assembly process.}
+\begin{pitfalls}{}{}
+    \begin{itemize}
+        \item \textbf{Assembly indexing errors:} A common mistake is adding local contributions to the wrong global entries. Always keep track of the global node numbering of each element. Drawing a small diagram of nodes vs element can help prevent misplacement of terms.
+        \item \textbf{Omitting elementwise integration:} Some students try to write down the global matrix by intuition without computing any integrals. While pattern recognition is good, you should derive at least one local integral to justify the entries (especially if coefficients are not constant). For instance, if $p(x)$ varies, $A_{ii} = \int (p\phi'_i\phi'_i)$ might not equal $2p/h$ but rather an average. Avoid guessing -- do the integral or at least set it up.
+        \item \textbf{Boundary conditions in assembly:} Remember to apply boundary conditions to $A$ and $F$. For homogeneous Dirichlet, the first and last basis functions might be omitted entirely (if $u_0=u_M=0$ are known, then $U_0,U_M$ are not unknowns -- thus $A$ effectively is smaller). If you include them, you must incorporate the BC by modifying $A$ or $F$ (e.g. subtracting known terms). Forgetting this leads to an inconsistent system.
+        \item \textbf{Confusing FD and FE matrices:} The structure may look similar to finite difference, but the derivation is different. Don't mix up stencil intuition with assembly. For example, a Robin boundary condition in FEM adds a term in $A_{nn}$ and $F_n$ (from the boundary integral), whereas in FD one might tweak the last equation differently. Be precise with FEM: incorporate boundary integrals for natural BCs, and enforce essential BCs by adjusting the linear system (big penalty or modification method).
+    \end{itemize}
+\end{pitfalls}
+\clearpage
 
 \section{Stiffness Matrix Assembly}
 
@@ -544,13 +539,25 @@ In summary, for Jacobi: state the iteration clearly and use either Gershgorin or
     \item \textbf{Not verifying matrix properties:} After assembly, pause to consider if $K$ is symmetric (it should be for self-adjoint problems), positive-definite, and of correct size. If anything looks odd (like a row of all zeros aside from the diagonal but that node isn't actually a boundary node), something went wrong. Each free node should have at least a diagonal and some off-diagonals corresponding to connected nodes. A quick scan can catch mistakes in an exam setting.
 \end{itemize}
 
-\section{Finite Difference Method (FDM) Problem-Solving Guide}
-
-\subsection{Stationary Boundary Value Problems (Poisson \& Laplace Equations)}
-
+\chapter{Finite Difference Method (FDM) Problem-Solving Guide}
+\begin{tcolorbox}[colback=mybg, colframe=black, title=PDE Classification Summary]
+\begin{center}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{l|c|c|c}
+\toprule
+\textbf{Type} & \textbf{General Form} & \textbf{Characteristics} & \textbf{Examples} \\
+\midrule
+\textcolor{myblue}{Elliptic} & $a\frac{\partial^2 u}{\partial x^2} + c\frac{\partial^2 u}{\partial y^2} = f$ & Equilibrium problems & Laplace, Poisson \\
+\textcolor{mygreen}{Parabolic} & $\frac{\partial u}{\partial t} = a\frac{\partial^2 u}{\partial x^2} + b\frac{\partial u}{\partial x} + cu$ & Diffusion, smoothing & Heat equation \\
+\textcolor{myred}{Hyperbolic} & $\frac{\partial^2 u}{\partial t^2} = a^2\frac{\partial^2 u}{\partial x^2}$ & Wave propagation & Wave equation \\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{tcolorbox}
+\section{Stationary Boundary Value Problems (Elliptic PDEs)}
 \paragraph{Overview:}
 Stationary problems involve solving elliptic PDEs (like Poisson’s or Laplace’s equation) on a spatial domain with given boundary conditions. The goal is to approximate the steady-state solution by replacing derivatives with finite difference stencils at discrete grid points. We obtain a system of algebraic equations (often linear) that we solve for the approximate solution values at the grid points.
-\subsubsection{1D Stationary Problems (Poisson Equation in One Dimension)}
+\subsubsection{1D Stationary Problems (Poisson)}
 \paragraph{Problem Setup:}
 We consider an ODE like $-u''(x) = f(x)$ on an interval $[a,b]$ with boundary conditions. Common cases include homogeneous or inhomogeneous Dirichlet conditions ($u(a)$ and $u(b)$ given) or Neumann conditions ($u'(a)$ or $u'(b)$ given). The Laplace equation is the special case $f(x)=0$.
 \paragraph{Solution Recipe (Step-by-Step):}
@@ -581,9 +588,111 @@ We consider an ODE like $-u''(x) = f(x)$ on an interval $[a,b]$ with boundary co
     \item \textbf{Sign Errors:} The standard Poisson FD equation is $- \frac{U_{i-1}-2U_i+U_{i+1}}{h^2} = f_i$. If the PDE is written $u''=f$, your discrete form would be $U_{i-1}-2U_i+U_{i+1} = h^2 f_i$. Pay attention to the sign convention in your formula to avoid solving the wrong equation.
 \end{itemize}
 
-\subsubsection{2D Stationary Problems (Poisson/Laplace in Two Dimensions)}
+\subsection{BVP: 2D Stationary Problems (Poisson/Laplace)}
 \paragraph{Problem Setup:}
 We now have $-\Delta u = f(x,y)$ on a 2D domain (often a rectangle) with boundary conditions on all sides (could be Dirichlet, Neumann, or mixed). A common example is Laplace’s equation $\Delta u = 0$ on a rectangle with specified boundary values (Dirichlet problem), or a Poisson equation on a square with some Neumann edges.
+\begin{tcolorbox}[pde, elliptic, title=Laplace Equation]
+\begin{multicols}{2}
+\textbf{Equation:} $\nabla^2 u = 0$
+
+\textbf{2D Form:} $\frac{\partial^2 u}{\partial x^2} + \frac{\partial^2 u}{\partial y^2} = 0$
+
+\textbf{Classification:} Elliptic
+
+\textbf{Applications:}
+\begin{itemize}[leftmargin=*, nosep]
+\item Electrostatic potential
+\item Steady-state heat 
+\item Gravitational fields
+\end{itemize}
+
+\textbf{Key Properties:}
+\begin{itemize}[leftmargin=*, nosep]
+\item Solutions are harmonic functions
+\item Mean value property
+\item Maximum principle
+\end{itemize}
+\columnbreak
+
+\begin{tikzpicture}
+\begin{axis}[
+    width=\linewidth,
+    height=4.5cm,
+    title={Harmonic Function},
+    xlabel={$x$},
+    ylabel={$y$},
+    zlabel={},
+    view={30}{40},
+    colormap={custom}{color(0)=(myblue!10) color(0.5)=(myblue) color(1)=(myblue!80!black)},
+    zmin=-1.5, zmax=1.5,
+    xticklabels={}, yticklabels={}, zticklabels={},
+    ]
+    \addplot3[
+        surf,
+        domain=-pi:pi,
+        domain y=-pi:pi,
+        samples=30,
+        z buffer=sort,
+        shader=interp,
+    ] {sin(deg(x))*sin(deg(y))};
+    \addplot3[black, thick, domain=-pi:pi, samples=20] 
+        (x, -pi, {sin(deg(x))*sin(deg(-pi))});
+    \addplot3[black, thick, domain=-pi:pi, samples=20] 
+        (x, pi, {sin(deg(x))*sin(deg(pi))});
+\end{axis}
+\end{tikzpicture}
+\end{multicols}
+\end{tcolorbox}
+\begin{tcolorbox}[pde, elliptic, title=Poisson Equation]
+\begin{multicols}{2}
+\textbf{Equation:} $\nabla^2 u = f(x,y)$
+
+\textbf{2D Form:} $\frac{\partial^2 u}{\partial x^2} + \frac{\partial^2 u}{\partial y^2} = f(x,y)$
+
+\textbf{Classification:} Elliptic
+
+\textbf{Applications:}
+\begin{itemize}[leftmargin=*, nosep]
+\item Electrostatics with charges
+\item Steady heat with sources
+\item Gravitational fields with mass
+\end{itemize}
+
+\textbf{Source term:} $f(x,y)$ represents external forcing
+\columnbreak
+
+\begin{tikzpicture}
+\begin{axis}[
+    width=\linewidth,
+    height=4.5cm,
+    title={Poisson Solution},
+    xlabel={$x$},
+    ylabel={$y$},
+    zlabel={},
+    view={40}{30},
+    colormap={custom}{color(0)=(myblue!80) color(0.5)=(myblue!30!white) color(1)=(white)},
+    zmin=0, zmax=1,
+    xticklabels={}, yticklabels={}, zticklabels={},
+    ]
+    \addplot3[
+        surf,
+        domain=0:1,
+        domain y=0:1,
+        samples=30,
+        z buffer=sort,
+        shader=interp,
+        point meta=x*y*(1-x)*(1-y)*16,
+    ] {x*y*(1-x)*(1-y)*16};
+    
+    \addplot3[black, thick, domain=0:1, samples=30] 
+        ({x}, 0.5, {0.5*x*(1-x)*(1-0.5)*(0.5)*16});
+    
+    \node[fill=white, opacity=0.8, text opacity=1, font=\small] at (axis cs:0.7,0.3,0.8) 
+        {$u=x(1-x)y(1-y)$};
+\end{axis}
+\end{tikzpicture}
+\end{multicols}
+\end{tcolorbox}
 \paragraph{Solution Recipe:}
 \begin{enumerate}
     \item \textbf{Discretize the Domain:} Lay a uniform grid over the 2D domain. For simplicity, assume a rectangular domain ${a \le x \le b,; c \le y \le d}$ and use mesh spacings $\Delta x = (b-a)/N$ and $\Delta y = (d-c)/P$. Grid points are $(x_i, y_j)$ for $i=0,\dots,N$ and $j=0,\dots,P$. Unknown $U_{i,j} \approx u(x_i,y_j)$. Again, boundary values $U_{i,j}$ are known if Dirichlet; for Neumann, normal derivative values are given on edges.
@@ -655,14 +764,19 @@ We now have $-\Delta u = f(x,y)$ on a 2D domain (often a rectangle) with boundar
     \item \textbf{Large Linear System Handling:} Some students try to invert the full matrix explicitly, which is impractical. Instead, focus on describing the matrix or solution method. Not articulating how you’d solve/iterate can cost points; mention known methods (Jacobi, Gauss--Seidel, etc.) and their typical convergence for Poisson problems.
 \end{itemize}
 
-\subsection{Time-Dependent Problems: Heat/Diffusion Equation (Parabolic PDE)}
+\section{Time-Dependent Problems}
+
+\subsection{Heat/Diffusion Equation (Parabolic PDE)}
+
 The heat equation represents diffusion processes and is first-order in time and second-order in space. We consider 1D and 2D cases. Finite difference schemes involve time-stepping. Key considerations are time step size (stability) and the method (explicit vs implicit).
 \paragraph{General Heat Equation form:}
 $u_t = \alpha, \Delta u + s(x,t)$ (with $\alpha>0$ the diffusion coefficient, and possibly source term $s$). Commonly, $s=0$ for pure diffusion. Initial condition $u(x,0)=f(x)$ is given, along with BCs (Dirichlet: fixed temperature, or Neumann: insulated, etc.).
-\subsubsection{1D Heat Equation (Explicit and Implicit Schemes)}
+\subsection{1D Heat Equation (Explicit and Implicit Schemes)}
 \paragraph{Problem Setup:}
 $u_t = \alpha, u_{xx}$ for $x\in[a,b]$, $t>0$, with initial profile $u(x,0)=f(x)$. Boundary conditions can be Dirichlet (e.g. $u(a,t)=A(t)$, $u(b,t)=B(t)$ fixed in time) or Neumann ($u_x(a,t)=0$ insulated end, etc.). We seek $U_j^n \approx u(x_j, t^n)$ on a space grid $x_j = a + j\Delta x$ ($j=0,\dots,N$) and time levels $t^n = n\Delta t$.
+
 \paragraph{Solution Recipe (Step-by-Step):}
+
 \begin{enumerate}
     \item \textbf{Choose a Time-Stepping Scheme:} Decide between an explicit method (easy but conditionally stable) or an implicit method (unconditionally stable but requires solving linear systems each step). Two common schemes:
           \begin{itemize}
@@ -672,19 +786,32 @@ $u_t = \alpha, u_{xx}$ for $x\in[a,b]$, $t>0$, with initial profile $u(x,0)=f(x)
           \end{itemize}
     \item \textbf{Set Up the Grid:} Let $\Delta x = (b-a)/N$ and $\Delta t$ be chosen (possibly from a stability criterion). Define grid values $U_j^n \approx u(x_j, t^n)$. Incorporate initial condition: set $U_j^0 = f(x_j)$ for all $j$.
     \item \textbf{Write the Finite Difference Update:} For FTCS (explicit), use forward difference in time and central in space:
-          $$\frac{U_j^{n+1}-U_j^n}{\Delta t} = \alpha\frac{U_{j+1}^n - 2U_j^n + U_{j-1}^n}{\Delta x^2},$$ which rearranges to the explicit update formula:
-          $$U_j^{n+1} = U_j^n + \underbrace{\frac{\alpha\Delta t}{\Delta x^2}}_{=:r}\left(U_{j+1}^n - 2U_j^n + U_{j-1}^n\right).$$
+          $$
+              \frac{U_j^{n+1}-U_j^n}{\Delta t} = \alpha\frac{U_{j+1}^n - 2U_j^n + U_{j-1}^n}{\Delta x^2},
+          $$
+          which rearranges to the explicit update formula:
+
+          $$
+              U_j^{n+1} = U_j^n + \underbrace{\frac{\alpha\Delta t}{\Delta x^2}}_{=:r}\left(U_{j+1}^n - 2U_j^n + U_{j-1}^n\right).
+          $$
+
           Here $r = \frac{\alpha\Delta t}{\Delta x^2}$ is the \textbf{diffusion Courant number} (ratio controlling stability)\cite{ddcampayo}.
           This scheme is first-order accurate in time, second-order in space.
+
           \medskip
+
           For BTCS (implicit), use backward time and central space:
-          $$\frac{U_j^{n+1}-U_j^n}{\Delta t} = \alpha\frac{U_{j+1}^{n+1} - 2U_j^{n+1} + U_{j-1}^{n+1}}{\Delta x^2},$$
+
+          $$
+              \frac{U_j^{n+1}-U_j^n}{\Delta t} = \alpha\frac{U_{j+1}^{n+1} - 2U_j^{n+1} + U_{j-1}^{n+1}}{\Delta x^2},
+          $$
+
           leading to a linear system at each time step:
 
-          $$-rU_{j-1}^{n+1} + (1+2r) U_j^{n+1} - rU_{j+1}^{n+1} = U_j^n$$
-
-          for all interior $j$.
-          This is unconditionally stable and first-order in time.
+          $$
+              -rU_{j-1}^{n+1} + (1+2r) U_j^{n+1} - rU_{j+1}^{n+1} = U_j^n, \; \text{for } j=1,\dots,N-1, \quad \text{(interior points)}
+          $$
+          This is unconditionally stable and first-order in time $O(\Delta t + \Delta x^2)$.
 
           \medskip
 
@@ -735,8 +862,70 @@ $u_t = \alpha, u_{xx}$ for $x\in[a,b]$, $t>0$, with initial profile $u(x,0)=f(x)
 
     \item \textbf{Not Updating the Entire Domain:} It's easy to forget to update the interior only and handle boundaries separately. Make sure you clarify that for each time step: you update all interior $j=1,\ldots,N-1$ via the scheme, and then immediately impose boundary values for $U_0^{n+1},U_N^{n+1}$ (either copying Dirichlet values or applying Neumann formula). This two-step (interior update + BC application) ensures the boundary at the new time is correct.
 \end{itemize}
+\subsection{2D Heat Equation}
+\begin{tcolorbox}[pde, parabolic, title=Heat Equation]
+\begin{multicols}{2}
+\textbf{Equation:} $\frac{\partial u}{\partial t} = \alpha \nabla^2 u$
 
-\subsubsection{2D Heat Equation}
+\textbf{1D Form:} $\frac{\partial u}{\partial t} = \alpha \frac{\partial^2 u}{\partial x^2}$
+
+\textbf{Classification:} Parabolic
+
+\textbf{Applications:}
+\begin{itemize}[leftmargin=*, nosep]
+\item Temperature diffusion
+\item Brownian motion
+\item Diffusion of particles
+\end{itemize}
+
+\textbf{Key Properties:}
+\begin{itemize}[leftmargin=*, nosep]
+\item Smoothing effect
+\item Infinite propagation speed
+\item Initial/boundary value problem
+\end{itemize}
+\columnbreak
+
+\begin{tikzpicture}
+\begin{axis}[
+    width=\linewidth,
+    height=4.5cm,
+    title={Heat Diffusion},
+    xlabel={Position $x$},
+    ylabel={$u$},
+    legend style={at={(0.03,0.03)}, anchor=south west, font=\tiny, legend cell align=left},
+    xmin=0, xmax=1,
+    ymin=0, ymax=1.2,
+    domain=0:1,
+    samples=50,
+    cycle list name=color list,
+    every axis plot/.append style={very thick},
+    ]
+    
+    % Create a custom gradient colormap for this plot
+    \pgfplotscreateplotcyclelist{heat gradients}{
+    {myblue, thick},
+    {myblue!80!mygreen, thick},
+    {mygreen!60!myblue, thick},
+    {mygreen!80!yellow, thick},
+    {myorange, thick},
+    }
+    \pgfplotsset{cycle list name=heat gradients}
+    
+    \addplot {sin(deg(pi*x))};
+    \addplot {sin(deg(pi*x))*exp(-pi*pi*0.05)};
+    \addplot {sin(deg(pi*x))*exp(-pi*pi*0.1)};
+    \addplot {sin(deg(pi*x))*exp(-pi*pi*0.2)};
+    \addplot {sin(deg(pi*x))*exp(-pi*pi*0.4)};
+    
+    \draw[->] (axis cs:0.7,0.9) -- (axis cs:0.7,0.4) 
+        node[midway, right, font=\scriptsize] {time};
+        
+    \legend{$t=0$,$t=0.05$,$t=0.1$,$t=0.2$,$t=0.4$}
+\end{axis}
+\end{tikzpicture}
+\end{multicols}
+\end{tcolorbox}
 The extension to two spatial dimensions follows similarly, but there are a few added concerns with stability and complexity:
 \paragraph{Key Differences from 1D:}
 \begin{itemize}
@@ -763,7 +952,197 @@ The extension to two spatial dimensions follows similarly, but there are a few a
     \item Boundary Condition Handling: In updating a corner explicitly, make sure you account for both directions. E.g. at $(i=1,j=1)$ near a corner with Neumann on left and bottom, the explicit update uses $U_{0,1}, U_{1,0}$ which are ghosts determined by Neumann conditions in $x$ and $y$ respectively. Don’t mix up which ghost corresponds to which derivative.
     \item Exceeding Stability in Source Terms: If a source term $s(x,t)$ is present, stability analysis changes slightly (source doesn’t affect homogeneous stability, but large source can cause fast growth of true solution). Ensure your time step also resolves source dynamics (you might need smaller $\Delta t$ to accurately capture a fast source even if mathematically stable).
 \end{itemize}
-\subsection{Time-Dependent Problems: Wave Equation (Hyperbolic PDE)}
+
+\subsection{Advection-Diffusion Equation (Mixed PDE)}
+The advection-diffusion equation combines both diffusion and advection processes. It is a parabolic-hyperbolic PDE, often used in fluid dynamics and transport phenomena.
+
+\begin{tcolorbox}[pde, hyperbolic, title=Advection (Transport) Equation]
+\begin{multicols}{2}
+\textbf{Equation:} $\frac{\partial u}{\partial t} + a \cdot \nabla u = 0$
+
+\textbf{1D Form:} $\frac{\partial u}{\partial t} + a \frac{\partial u}{\partial x} = 0$
+
+\textbf{Classification:} Hyperbolic
+
+\textbf{Applications:}
+\begin{itemize}[leftmargin=*, nosep]
+\item Transport phenomena
+\item Wave propagation
+\item Traffic flow
+\end{itemize}
+
+\textbf{Key Properties:}
+\begin{itemize}[leftmargin=*, nosep]
+\item Solution moves with velocity $a$
+\item Shape preservation
+\item Characteristic curves $x = x_0 + at$
+\end{itemize}
+\columnbreak
+
+\begin{tikzpicture}
+\begin{axis}[
+    width=\linewidth,
+    height=4.5cm,
+    title={Wave Transport},
+    xlabel={Position $x$},
+    ylabel={$u$},
+    xmin=0, xmax=10,
+    ymin=0, ymax=1.2,
+    domain=0:10,
+    samples=100,
+    every axis plot/.append style={very thick},
+    ]
+    
+    % Define a gradient for our plots
+    \pgfplotscreateplotcyclelist{transport gradients}{
+    {myred, thick},
+    {myred!70!myorange, thick},
+    {myorange!80!yellow, thick},
+    {myorange!40!yellow, thick},
+    }
+    \pgfplotsset{cycle list name=transport gradients}
+    
+    \addplot {exp(-((x-2)^2)/0.5)};
+    \addplot {exp(-((x-4)^2)/0.5)};
+    \addplot {exp(-((x-6)^2)/0.5)};
+    \addplot {exp(-((x-8)^2)/0.5)};
+    
+    % Add arrows to show direction
+    \draw[->, ultra thick, myred!50!black] (axis cs:3,0.8) to[bend left] (axis cs:5,0.8);
+    \draw[->, ultra thick, myred!50!black] (axis cs:5,0.8) to[bend left] (axis cs:7,0.8);
+    \draw[->, ultra thick, myred!50!black] (axis cs:7,0.8) to[bend left] (axis cs:9,0.8);
+    
+    \node[font=\tiny, align=center] at (axis cs:5,0.95) {Wave moves at\\constant speed $a$};
+\end{axis}
+\end{tikzpicture}
+\end{multicols}
+\end{tcolorbox}
+
+\begin{tcolorbox}[pde, mixed, title=Advection-Diffusion Equation]
+\begin{multicols}{2}
+\textbf{Equation:} $\frac{\partial u}{\partial t} = \epsilon \nabla^2 u - a \cdot \nabla u$
+
+\textbf{1D Form:} $\frac{\partial u}{\partial t} = \epsilon \frac{\partial^2 u}{\partial x^2} - a \frac{\partial u}{\partial x}$
+
+\textbf{Classification:} Mixed (parabolic-hyperbolic)
+
+\textbf{Applications:}
+\begin{itemize}[leftmargin=*, nosep]
+\item Pollutant transport
+\item Heat transfer in flows
+\item Dispersion processes
+\end{itemize}
+
+\textbf{Parameters:}
+\begin{itemize}[leftmargin=*, nosep]
+\item $\epsilon$ - diffusion coefficient
+\item $a$ - advection velocity
+\item Péclet number: $Pe = \frac{aL}{\epsilon}$
+\end{itemize}
+\columnbreak
+
+\begin{tikzpicture}
+\begin{axis}[
+    width=\linewidth,
+    height=4.5cm,
+    title={Advection with Diffusion},
+    xlabel={Position $x$},
+    ylabel={$u$},
+    xmin=0, xmax=10,
+    ymin=0, ymax=1.2,
+    domain=0:10,
+    samples=100,
+    legend style={at={(0.03,0.03)}, anchor=south west, font=\tiny, legend cell align=left},
+    ]
+    
+    % Custom color gradient
+    \pgfplotscreateplotcyclelist{adv-diff gradients}{
+    {mypurple, thick},
+    {mypurple!80!myblue, thick},
+    {mypurple!60!myblue, thick},
+    {mypurple!40!myblue, thick},
+    }
+    \pgfplotsset{cycle list name=adv-diff gradients}
+    
+    \addplot {exp(-((x-2)^2)/0.2)};
+    \addplot {exp(-((x-3.5)^2)/0.5)};
+    \addplot {exp(-((x-5)^2)/0.8)};
+    \addplot {exp(-((x-6.5)^2)/1.2)};
+    
+    % Add annotation to show combined effects
+    \draw[<->, thick, mypurple] (axis cs:2,0.5) -- (axis cs:6.5,0.5);
+    \node[font=\tiny, mypurple] at (axis cs:4.25,0.6) {transport};
+    
+    \draw[<->, thick, myblue] (axis cs:6,0.3) -- (axis cs:7,0.3);
+    \node[font=\tiny, myblue] at (axis cs:6.5,0.4) {diffusion};
+    
+    \legend{$t=0$, $t=0.2$, $t=0.5$, $t=0.8$}
+\end{axis}
+\end{tikzpicture}
+\end{multicols}
+\end{tcolorbox}
+\subsection{Wave Equation (Hyperbolic PDE)}
+
+\begin{tcolorbox}[pde, hyperbolic, title=Wave Equation]
+\begin{multicols}{2}
+\textbf{Equation:} $\frac{\partial^2 u}{\partial t^2} = c^2 \nabla^2 u$
+
+\textbf{1D Form:} $\frac{\partial^2 u}{\partial t^2} = c^2 \frac{\partial^2 u}{\partial x^2}$
+
+\textbf{Classification:} Hyperbolic
+
+\textbf{Applications:}
+\begin{itemize}[leftmargin=*, nosep]
+\item Sound waves
+\item Electromagnetic waves
+\item Vibrating strings/membranes
+\end{itemize}
+
+\textbf{Key Properties:}
+\begin{itemize}[leftmargin=*, nosep]
+\item Wave propagation
+\item Finite propagation speed $c$
+\item D'Alembert solution: $u(x,t) = f(x-ct) + g(x+ct)$
+\end{itemize}
+\columnbreak
+
+\begin{tikzpicture}
+\begin{axis}[
+    width=\linewidth,
+    height=4.5cm,
+    title={Wave Propagation},
+    xlabel={Position $x$},
+    ylabel={$u$},
+    xmin=-5, xmax=5,
+    ymin=-1.2, ymax=1.2,
+    domain=-5:5,
+    samples=100,
+    legend style={at={(0.03,0.03)}, anchor=south west, font=\tiny},
+    ]
+    
+    % Custom color scheme for wave equation
+    \pgfplotscreateplotcyclelist{wave gradients}{
+    {myred!80!black, thick},
+    {myred, thick},
+    {myorange, thick},
+    {myorange!80!yellow, thick},
+    }
+    \pgfplotsset{cycle list name=wave gradients}
+    
+    \addplot {exp(-(x^2)/0.5)};
+    \addplot {0.9*exp(-((x-1.5)^2)/0.5) + 0.9*exp(-((x+1.5)^2)/0.5)};
+    \addplot {0.8*exp(-((x-3)^2)/0.5) + 0.8*exp(-((x+3)^2)/0.5)};
+    \addplot {0.7*exp(-((x-4.5)^2)/0.5) + 0.7*exp(-((x+4.5)^2)/0.5)};
+    
+    % Add arrows to show propagation
+    \draw[->, very thick, myred!50!black] (axis cs:0,0.6) -- (axis cs:1.5,0.6);
+    \draw[->, very thick, myred!50!black] (axis cs:0,0.6) -- (axis cs:-1.5,0.6);
+    
+    \legend{$t=0$, $t=0.5$, $t=1.0$, $t=1.5$}
+\end{axis}
+\end{tikzpicture}
+\end{multicols}
+\end{tcolorbox}
 The wave equation
 $$
     u_{tt} = c^2 \Delta u, \text{ with } c \text{ the wave speed}
@@ -818,8 +1197,6 @@ $u_{tt} = c^2 u_{xx}$ for $x\in[a,b]$, with initial displacement $u(x,0)=g(x)$ a
     \item \textbf{Interpretation of $\lambda=1$ Case:} If $\lambda$ is exactly 1, the scheme is neutrally stable — errors neither grow nor dissipate (in theory). In practice, floating-point rounding can then accumulate. It’s safer to run with $\lambda$ slightly below 1. On an exam, if asked for the “stability limit”, give $\lambda \le 1$, but if asked for strict stability vs neutral, you might say $\lambda<1$ for strict stability and $\lambda=1$ is the borderline case.
 \end{itemize}
 
-
-
 \subsubsection{2D Wave Equation}
 For a domain in 2D, e.g. $u_{tt} = c^2(u_{xx}+u_{yy})$, the finite difference is analogous but each point's update involves its four nearest neighbors in space:
 $$\frac{U_{i,j}^{n+1} - 2U_{i,j}^n + U_{i,j}^{n-1}}{(\Delta t)^2} = c^2 \Big(\frac{U_{i+1,j}^n - 2U_{i,j}^n + U_{i-1,j}^n}{\Delta x^2} + \frac{U_{i,j+1}^n - 2U_{i,j}^n + U_{i,j-1}^n}{\Delta y^2}\Big).$$
@@ -847,9 +1224,9 @@ for equal grid spacing. In general, for a grid spacing $(\Delta x,\Delta y)$, st
     \item \textbf{Over-damped Behavior:} If someone mistakenly adds a term like $U_j^{n-1}$ with a plus sign (instead of minus) or uses an incorrect coefficient, the scheme could become overly diffusive or unstable. Double-check the derived scheme by testing simple cases: e.g., constant solution $u=\text{const}$ should remain constant ($U_j^{n+1}=U_j^n$); one spatial oscillation ($(-1)^j$ pattern) should produce the appropriate oscillation in time given the CFL chosen.
 \end{itemize}
 
-\subsection{Analysis and Verification Tasks}
+\section{Analysis and Verification Tasks}
 
-\subsubsection{Truncation Error \& Consistency}
+\subsection{Truncation Error \& Consistency}
 
 \paragraph{Truncation Error:}
 To derive the local truncation error $\tau$, assume the solution $u(x,t)$ is sufficiently smooth. Write out the Taylor series for terms in your scheme. For example, in 1D, for a point $x_j$:
@@ -864,7 +1241,7 @@ For instance, for the heat FTCS scheme, after substituting expansions you might 
 
 \paragraph{Consistency:} If the truncation error $\tau \to 0$ as $\Delta t, \Delta x \to 0$, the scheme is consistent with the PDE. Simply put, make sure your finite difference equation formally approaches the PDE for small step sizes. (All schemes we discussed are consistent of at least first order.)
 
-\subsubsection{Stability (von Neumann analysis)}
+\subsection{Stability (von Neumann analysis)}
 \paragraph{Procedure:}
 \begin{enumerate}
     \item Assume linear PDE and linear scheme (no nonlinear terms for von Neumann).
@@ -893,17 +1270,24 @@ For multi-dimensional or multi-step schemes, you might get a condition like $|\z
 
 \paragraph{Boundary effects:} Note that von Neumann assumes an infinite or periodic domain (ignores boundaries). It checks internal stability. If a scheme is von Neumann stable and you apply proper boundary conditions, usually the scheme is stable in the whole domain. Only pathological boundary treatments can cause issues beyond von Neumann (like reflection amplifications, etc., which are rare in standard BCs).
 
-\subsubsection{Convergence \& Error Bounds}
+\subsection{Convergence \& Error Bounds}
 
-\paragraph{Convergence:}
-\begin{theorem}{Lax's Equivalence}{}
-    For linear initial value problems, consistency + stability = convergence.
+\begin{theorem}{Lax-Richtmyer Equivalence Theorem}{}
+    For consistent and stable linear finite difference schemes approximating well-posed linear initial value problems:
+    \begin{align*}
+         & \text{Consistency: } \lim_{\Delta x, \Delta t \to 0} \|\tau(x,t)\| = 0          \\
+         & +                                                                               \\
+         & \text{Stability: } \|S^n\| \leq K \text{ for all } n\Delta t \leq T             \\
+         & =                                                                               \\
+         & \text{Convergence: } \lim_{\Delta x, \Delta t \to 0} \|U_j^n - u(x_j,t^n)\| = 0
+    \end{align*}
 
-    $$\boxed{\text{If } \tau \to 0 \text{ and } |\zeta| \le 1, \text{ then } \|U_j^n - u(x_j,t^n)\| \to 0 \text{ as } \Delta x, \Delta t \to 0.}$$
+    \noindent where $\tau$ is the local truncation error, $S$ is the amplification operator, $U_j^n$ is the numerical solution, and $u(x_j,t^n)$ is the exact solution.
 \end{theorem}
 Thus, if you have shown your scheme is consistent (small truncation error) and stable (errors don't blow up), you can conclude the scheme's solution $U_j^n$ approaches the true $u(x_j,t^n)$ as $\Delta x, \Delta t \to 0$. In exam answers, after showing consistency and citing von Neumann stability, it is usually enough to state by Lax's theorem the scheme is convergent of the same order as its truncation error.
 
-\paragraph{Order of Convergence:} Often, you might be asked to verify the order by numerical experiment or derivation. The truncation error's leading term tells you the local error per step. If it's $O(h^p) + O(\Delta t^q)$, typically the scheme is globally $O(h^p + \Delta t^q)$ (assuming stability). For example, CN scheme has local error $O((\Delta t)^3)$ and $O(h^2)$, but global error $O((\Delta t)^2 + h^2)$ (since it's second-order in time globally). Be clear on this distinction if needed: local truncation order vs global convergence order.
+\paragraph{Order of Convergence:}
+Often, you might be asked to verify the order by numerical experiment or derivation. The truncation error's leading term tells you the local error per step. If it's $O(h^p) + O(\Delta t^q)$, typically the scheme is globally $O(h^p + \Delta t^q)$ (assuming stability). For example, CN scheme has local error $O((\Delta t)^3)$ and $O(h^2)$, but global error $O((\Delta t)^2 + h^2)$ (since it's second-order in time globally). Be clear on this distinction if needed: local truncation order vs global convergence order.
 
 \paragraph{Maximum Norm Error Bounds:} For elliptic (stationary) problems, one technique is using the Discrete Maximum Principle as mentioned to bound errors. Outline: if $L_h U = f_h$ and $L u = f$ (continuous), let $e_h = U - P_h u$ (difference between numerical and interpolated exact solution). Then $L_h e_h = \tau_h$ (discretization error). Using the inverse of $L_h$ (like a Greens function argument or energy norms), one can often show $|e_h|_\infty \le C |\tau_h|_\infty$. Since $\tau_h = O(h^p)$, this gives $|e_h|_\infty = O(h^p)$. A simpler way in answers: say "Because the finite difference scheme is second-order accurate and the discrete operator is stable (e.g., satisfies a maximum principle), we have $\max|U_i - u(x_i)| \le C h^2$ for some constant $C$".
 
@@ -911,18 +1295,20 @@ Thus, if you have shown your scheme is consistent (small truncation error) and s
 
 \paragraph{Practical error estimation:} If asked how to estimate error in a computation, a strategy is grid refinement: run the simulation with step sizes $(h, \Delta t)$ and then with $(h/2, \Delta t/2)$ and compare results -- the difference approximates the error and should scale by $\approx 2^p$ if $p$-th order (this is Richardson extrapolation idea).
 
-\subsubsection{Common Pitfalls in Analysis}
+\begin{pitfalls}{Common Mistakes in Stability/Convergence Analysis:}{}
+    \begin{itemize}
+        \item \textbf{Mixing up Stability vs Convergence:} Don't say "scheme is stable so it's accurate" -- stability means bounded growth of errors, but you also need consistency for accuracy. Always mention both for convergence.
 
-\begin{itemize}
-    \item \textbf{Mixing up Stability vs Convergence:} Don't say "scheme is stable so it's accurate" -- stability means bounded growth of errors, but you also need consistency for accuracy. Always mention both for convergence.
+        \item \textbf{Incorrect Fourier Mode Ans\"atze:} Make sure to include the factor $e^{ikx_j}$ and the time growth $\zeta^n$. Some forget $\zeta^n$ and end up analyzing spatial Fourier series instead of growth. The proper substitution is $U_j^n = \hat{G}^n e^{i k j h}$ (where $\hat{G}$ is often written as $e^{\sigma \Delta t}$ or so). After canceling, you solve for $\hat{G}$.
 
-    \item \textbf{Incorrect Fourier Mode Ans\"atze:} Make sure to include the factor $e^{ikx_j}$ and the time growth $\zeta^n$. Some forget $\zeta^n$ and end up analyzing spatial Fourier series instead of growth. The proper substitution is $U_j^n = \hat{G}^n e^{i k j h}$ (where $\hat{G}$ is often written as $e^{\sigma \Delta t}$ or so). After canceling, you solve for $\hat{G}$.
+        \item \textbf{Ignoring Nonlinear terms:} Von Neumann is for linear equations. If you have a nonlinear term (like $u u_x$ in Burgers' eq), von Neumann doesn't directly apply. You might linearize or use energy methods. On an exam, if faced with a nonlinear stability question, often the answer is "use Fourier analysis on the linear part, and note that nonlinear term doesn't produce new growth of high-frequency if treated properly" or use a modified approach (maybe not in this course).
 
-    \item \textbf{Ignoring Nonlinear terms:} Von Neumann is for linear equations. If you have a nonlinear term (like $u u_x$ in Burgers' eq), von Neumann doesn't directly apply. You might linearize or use energy methods. On an exam, if faced with a nonlinear stability question, often the answer is "use Fourier analysis on the linear part, and note that nonlinear term doesn't produce new growth of high-frequency if treated properly" or use a modified approach (maybe not in this course).
-
-    \item \textbf{Not answering what's asked:} If the question says "show stability without using Lax theorem," they probably expect an energy method or induction argument. Pay attention to such hints (like where they hinted at not invoking Lax). In that case, demonstrate $|U^n - u^n| \le (1+ \text{something})\cdot|U^{n-1}-u^{n-1}| + \text{const}\cdot(\text{truncation})$ and then conclude via Gronwall or induction that error stays bounded and small.
-\end{itemize}
+        \item \textbf{Not answering what's asked:} If the question says "show stability without using Lax theorem," they probably expect an energy method or induction argument. Pay attention to such hints (like where they hinted at not invoking Lax). In that case, demonstrate $|U^n - u^n| \le (1+ \text{something})\cdot|U^{n-1}-u^{n-1}| + \text{const}\cdot(\text{truncation})$ and then conclude via Gronwall or induction that error stays bounded and small.
+    \end{itemize}
+\end{pitfalls}
 
 % print the bibliography biblatex
 \printbibliography
+
 \end{document}
+
